@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+html, body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #F7F7F5;
+  color: #1A1A1A;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C8C8C8; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #A0A0A0; }
+
+@layer components {
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-400
+           transition-all duration-150 cursor-pointer select-none;
+  }
+  .sidebar-link:hover { @apply bg-surface-200 text-ink-800; }
+  .sidebar-link.active { @apply bg-ink-800 text-white; }
+  .sidebar-link .icon { @apply w-[18px] h-[18px] shrink-0; }
+  .card { @apply bg-white rounded-xl border border-surface-300 shadow-card p-5; }
+  .stat-card { @apply card flex flex-col gap-3 transition-shadow duration-200; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.2s ease-out both; }
+.animate-slide-in { animation: slideIn 0.25s ease-out both; }

@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="shieldBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2196F3"/>
+      <stop offset="100%" stop-color="#0D47A1"/>
+    </linearGradient>
+    <linearGradient id="shieldSplit" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1565C0"/>
+      <stop offset="50%" stop-color="#1976D2"/>
+      <stop offset="100%" stop-color="#E65100"/>
+    </linearGradient>
+    <linearGradient id="arrowGold" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#FFD54F"/>
+    </linearGradient>
+    <linearGradient id="tealHand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00ACC1"/>
+      <stop offset="100%" stop-color="#006064"/>
+    </linearGradient>
+    <linearGradient id="orangeHand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#E65100"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#42A5F5" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#1565C0" stop-opacity="0.4"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <clipPath id="shieldClip">
+      <path d="M100 18 L152 40 L152 96 Q152 142 100 168 Q48 142 48 96 L48 40 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Outer decorative ring -->
+  <circle cx="100" cy="100" r="94" fill="none" stroke="url(#ringGrad)" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.15"/>
+
+  <!-- Shield main body -->
+  <path d="M100 18 L152 40 L152 96 Q152 142 100 168 Q48 142 48 96 L48 40 Z"
+        fill="url(#shieldBlue)" filter="url(#shadow)"/>
+
+  <!-- Shield left half (teal tint) -->
+  <path d="M100 18 L48 40 L48 96 Q48 142 100 168 L100 18 Z"
+        fill="#1565C0" opacity="0.8"/>
+
+  <!-- Shield right half (warm tint) -->
+  <path d="M100 18 L152 40 L152 96 Q152 142 100 168 L100 18 Z"
+        fill="#1976D2" opacity="0.7"/>
+
+  <!-- Inner shield highlight -->
+  <path d="M100 22 L148 43 L148 96 Q148 138 100 162 L100 22 Z"
+        fill="#ffffff" opacity="0.04"/>
+
+  <!-- Shield border -->
+  <path d="M100 18 L152 40 L152 96 Q152 142 100 168 Q48 142 48 96 L48 40 Z"
+        fill="none" stroke="#64B5F6" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- Divider line inside shield -->
+  <line x1="100" y1="22" x2="100" y2="162" stroke="#ffffff" stroke-width="0.8" stroke-opacity="0.15"/>
+
+  <!-- ── LEFT HAND (teal) ── -->
+  <g fill="url(#tealHand)" clip-path="url(#shieldClip)">
+    <!-- Fingers -->
+    <rect x="60" y="95" width="7" height="28" rx="3.5"/>
+    <rect x="69" y="88" width="7" height="35" rx="3.5"/>
+    <rect x="78" y="83" width="7" height="40" rx="3.5"/>
+    <!-- Thumb -->
+    <path d="M55 118 Q52 110 56 107 Q60 104 63 108 L65 123 Z"/>
+    <!-- Palm -->
+    <path d="M58 120 Q57 130 63 134 L85 134 L85 123 Z"/>
+  </g>
+
+  <!-- ── RIGHT HAND (orange) ── -->
+  <g fill="url(#orangeHand)" clip-path="url(#shieldClip)">
+    <!-- Fingers -->
+    <rect x="126" y="95" width="7" height="28" rx="3.5"/>
+    <rect x="117" y="88" width="7" height="35" rx="3.5"/>
+    <rect x="108" y="83" width="7" height="40" rx="3.5"/>
+    <!-- Thumb -->
+    <path d="M145 118 Q148 110 144 107 Q140 104 137 108 L135 123 Z"/>
+    <!-- Palm -->
+    <path d="M142 120 Q143 130 137 134 L115 134 L115 123 Z"/>
+  </g>
+
+  <!-- ── CHART BARS (inside shield, center) ── -->
+  <g clip-path="url(#shieldClip)">
+    <rect x="67" y="108" width="9" height="22" rx="2" fill="#ffffff" opacity="0.85"/>
+    <rect x="78" y="98" width="9" height="32" rx="2" fill="#ffffff" opacity="0.85"/>
+    <rect x="89" y="88" width="9" height="42" rx="2" fill="#ffffff" opacity="0.9"/>
+    <rect x="100" y="93" width="9" height="37" rx="2" fill="#ffffff" opacity="0.85"/>
+    <rect x="111" y="78" width="9" height="52" rx="2" fill="#FFB300" opacity="0.95"/>
+  </g>
+
+  <!-- ── TREND LINE ── -->
+  <polyline
+    points="67,108 78,98 89,88 100,93 122,72"
+    fill="none"
+    stroke="url(#arrowGold)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#glow)"
+    clip-path="url(#shieldClip)"/>
+
+  <!-- Arrow head -->
+  <polygon points="122,72 112,76 118,84" fill="#FFD54F" filter="url(#glow)" clip-path="url(#shieldClip)"/>
+
+  <!-- ── STAR (top right) ── -->
+  <g filter="url(#glow)">
+    <path d="M142 34
+             L144.4 41.2 L152 41.2 L146 45.6 L148.4 52.8
+             L142 48.4 L135.6 52.8 L138 45.6 L132 41.2
+             L139.6 41.2 Z"
+          fill="#FFD54F"/>
+  </g>
+
+  <!-- ── COINS (top left) ── -->
+  <g>
+    <!-- Coin stack -->
+    <ellipse cx="76" cy="54" rx="12" ry="5" fill="#E65100" opacity="0.9"/>
+    <rect x="64" y="46" width="24" height="10" rx="2" fill="#BF360C" opacity="0.8"/>
+    <ellipse cx="76" cy="46" rx="12" ry="5" fill="#FF8F00" opacity="0.9"/>
+    <rect x="64" y="38" width="24" height="10" rx="2" fill="#E65100" opacity="0.85"/>
+    <ellipse cx="76" cy="38" rx="12" ry="5" fill="#FFB300" opacity="0.95"/>
+    <!-- Coin shine -->
+    <ellipse cx="73" cy="36" rx="4" ry="2" fill="#ffffff" opacity="0.25"/>
+  </g>
+
+  <!-- Decorative dots -->
+  <circle cx="55" cy="72" r="2.5" fill="#42A5F5" opacity="0.5"/>
+  <circle cx="145" cy="72" r="2.5" fill="#42A5F5" opacity="0.5"/>
+  <circle cx="52" cy="84" r="1.5" fill="#FFB300" opacity="0.4"/>
+  <circle cx="148" cy="84" r="1.5" fill="#FFB300" opacity="0.4"/>
+</svg>
