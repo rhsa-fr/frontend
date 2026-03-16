@@ -2,7 +2,7 @@
 // Pinjaman Types — sesuai backend schema
 // ============================================================================
 
-export type StatusPinjaman = 'pending' | 'disetujui' | 'ditolak' | 'lunas'
+export type StatusPinjaman = 'pending' | 'disetujui' | 'ditolak' | 'lunas' 
 
 export interface Pinjaman {
   id_pinjaman: number

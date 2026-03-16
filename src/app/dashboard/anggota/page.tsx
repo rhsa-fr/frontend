@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/context/AuthContext'
 
 // ============================================================================
 // Types
@@ -290,6 +291,10 @@ export default function AnggotaPage() {
   const [error, setError] = useState<string | null>(null)
   const [counts, setCounts] = useState({ semua: 0, aktif: 0, 'non-aktif': 0, keluar: 0 })
 
+  // ✅ Cek role — hanya admin yang bisa tambah/edit/hapus
+  const { user } = useAuth()
+  const canEdit = user?.role === 'admin'
+
   const LIMIT = 10
 
   const fetchData = useCallback(async () => {
@@ -305,7 +310,6 @@ export default function AnggotaPage() {
       const res = await api.get<PaginatedResponse>(`/anggota?${params}`)
       setData(res.data)
       setMeta({ total: res.meta.total, page: res.meta.page, total_pages: res.meta.total_pages })
-      // Fetch counts untuk semua status
       try {
         const [all, aktif, nonAktif, keluar] = await Promise.all([
           api.get<PaginatedResponse>('/anggota?limit=1'),
@@ -391,26 +395,28 @@ export default function AnggotaPage() {
           >
             <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
           </button>
-          <button
-            onClick={() => { setEditData(null); setModalOpen(true) }}
-            className="h-8 px-3 rounded-lg text-xs font-semibold text-white flex items-center gap-1.5
-                       transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Tambah Anggota
-          </button>
+          {/* ✅ Hanya admin yang bisa tambah anggota */}
+          {canEdit && (
+            <button
+              onClick={() => { setEditData(null); setModalOpen(true) }}
+              className="h-8 px-3 rounded-lg text-xs font-semibold text-white flex items-center gap-1.5
+                         transition-all hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Tambah Anggota
+            </button>
+          )}
         </div>
       </div>
 
-
-      {/* ── Rekap Stat Cards (informasi saja) ── */}
+      {/* ── Rekap Stat Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {([
-          { label: 'Total Anggota', count: counts.semua,        iconBg: 'bg-blue-50',    iconColor: 'text-blue-500',    textColor: 'text-ink-800'    },
+          { label: 'Total Anggota', count: counts.semua,        iconBg: 'bg-blue-50',    iconColor: 'text-blue-500',    textColor: 'text-ink-800' },
           { label: 'Aktif',         count: counts.aktif,        iconBg: 'bg-emerald-50', iconColor: 'text-emerald-500', textColor: 'text-ink-800' },
-          { label: 'Non-Aktif',     count: counts['non-aktif'], iconBg: 'bg-amber-50',   iconColor: 'text-amber-500',   textColor: 'text-ink-800'   },
-          { label: 'Keluar',        count: counts.keluar,       iconBg: 'bg-red-50',     iconColor: 'text-red-400',     textColor: 'text-ink-800'     },
+          { label: 'Non-Aktif',     count: counts['non-aktif'], iconBg: 'bg-amber-50',   iconColor: 'text-amber-500',   textColor: 'text-ink-800' },
+          { label: 'Keluar',        count: counts.keluar,       iconBg: 'bg-red-50',     iconColor: 'text-red-400',     textColor: 'text-ink-800' },
         ]).map(card => (
           <div key={card.label} className="bg-white rounded-xl border border-surface-300 shadow-card p-4 flex items-center gap-3">
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', card.iconBg)}>
@@ -432,10 +438,10 @@ export default function AnggotaPage() {
       {/* ── Filter Pill Status ── */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {([
-          { value: '' as const,         label: 'Semua',     dot: '',              activeClass: 'bg-ink-800 text-white border-ink-800',     inactiveClass: 'text-ink-600'    },
-          { value: 'aktif' as const,    label: '● Aktif',   dot: 'text-emerald-500', activeClass: 'bg-emerald-500 text-white border-emerald-500', inactiveClass: 'text-emerald-600' },
-          { value: 'non-aktif' as const,label: '● Non-Aktif',dot:'text-amber-500',  activeClass: 'bg-amber-500 text-white border-amber-500',   inactiveClass: 'text-amber-600'   },
-          { value: 'keluar' as const,   label: '● Keluar',  dot: 'text-red-400',  activeClass: 'bg-red-500 text-white border-red-500',     inactiveClass: 'text-red-500'    },
+          { value: '' as const,          label: 'Semua',       activeClass: 'bg-ink-800 text-white border-ink-800',         inactiveClass: 'text-ink-600'     },
+          { value: 'aktif' as const,     label: '● Aktif',     activeClass: 'bg-emerald-500 text-white border-emerald-500', inactiveClass: 'text-emerald-600' },
+          { value: 'non-aktif' as const, label: '● Non-Aktif', activeClass: 'bg-amber-500 text-white border-amber-500',     inactiveClass: 'text-amber-600'   },
+          { value: 'keluar' as const,    label: '● Keluar',    activeClass: 'bg-red-500 text-white border-red-500',         inactiveClass: 'text-red-500'     },
         ]).map(pill => (
           <button
             key={pill.value}
@@ -453,7 +459,6 @@ export default function AnggotaPage() {
       </div>
 
       {/* ── Error ── */}
-
       {error && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-100">
           <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
@@ -466,7 +471,8 @@ export default function AnggotaPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-surface-200 bg-surface-50">
-              {['NO. ANGGOTA', 'NAMA LENGKAP', 'EMAIL', 'NO. TELEPON', 'TGL. BERGABUNG', 'STATUS', 'AKSI'].map(h => (
+              {/* ✅ Kolom AKSI hanya tampil jika admin */}
+              {['NO. ANGGOTA', 'NAMA LENGKAP', 'EMAIL', 'NO. TELEPON', 'TGL. BERGABUNG', 'STATUS', ...(canEdit ? ['AKSI'] : [])].map(h => (
                 <th key={h} className="text-left text-[10px] font-bold text-ink-300 tracking-widest uppercase px-4 py-3 whitespace-nowrap">
                   {h}
                 </th>
@@ -476,14 +482,14 @@ export default function AnggotaPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="text-center py-16">
+                <td colSpan={canEdit ? 7 : 6} className="text-center py-16">
                   <Loader2 className="w-6 h-6 animate-spin text-ink-300 mx-auto mb-2" />
                   <p className="text-xs text-ink-300">Memuat data...</p>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-16">
+                <td colSpan={canEdit ? 7 : 6} className="text-center py-16">
                   <User className="w-8 h-8 text-ink-200 mx-auto mb-2" />
                   <p className="text-sm text-ink-300">
                     {search ? 'Tidak ada anggota yang cocok.' : 'Belum ada data anggota.'}
@@ -502,7 +508,6 @@ export default function AnggotaPage() {
                   <td className="px-4 py-3 text-xs font-mono text-ink-400 whitespace-nowrap">{a.no_anggota}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {/* ── AVATAR SILUET ORANG ── */}
                       <AnggotaAvatar size="sm" />
                       <span className="font-semibold text-ink-800 whitespace-nowrap">{a.nama_lengkap}</span>
                     </div>
@@ -513,26 +518,29 @@ export default function AnggotaPage() {
                   <td className="px-4 py-3">
                     <StatusBadge status={a.status} />
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => { setEditData(a); setModalOpen(true) }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-ink-300
-                                   hover:bg-blue-50 hover:text-blue-600 transition-all"
-                        title="Edit"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirm(a)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-ink-300
-                                   hover:bg-red-50 hover:text-red-500 transition-all"
-                        title="Hapus"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
+                  {/* ✅ Tombol edit/hapus hanya untuk admin */}
+                  {canEdit && (
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => { setEditData(a); setModalOpen(true) }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-ink-300
+                                     hover:bg-blue-50 hover:text-blue-600 transition-all"
+                          title="Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(a)}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-ink-300
+                                     hover:bg-red-50 hover:text-red-500 transition-all"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -567,9 +575,7 @@ export default function AnggotaPage() {
                     onClick={() => setPage(p)}
                     className={cn(
                       'w-8 h-8 rounded-lg text-xs font-medium transition-all',
-                      p === page
-                        ? 'text-white shadow-sm'
-                        : 'border border-surface-300 text-ink-500 hover:bg-surface-100'
+                      p === page ? 'text-white shadow-sm' : 'border border-surface-300 text-ink-500 hover:bg-surface-100'
                     )}
                     style={p === page ? { background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' } : {}}
                   >
