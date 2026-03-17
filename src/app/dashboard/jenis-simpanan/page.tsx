@@ -443,16 +443,7 @@ export default function JenisSimpananPage() {
         )}
       </div>
 
-      {/* ── Info Role ───────────────────────────────────────────────────────── */}
-      {!isAdmin && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
-          {/* <Info className="w-4 h-4 text-amber-600 shrink-0" />
-          <p className="text-xs text-amber-700">
-            Anda hanya dapat melihat daftar jenis simpanan. Hanya Admin yang dapat menambah, mengubah, atau menghapus.
-          </p> */}
-        </div>
-      )}
-
+    
       {/* ── Summary Cards ───────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[

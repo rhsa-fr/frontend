@@ -554,7 +554,8 @@ export default function AngsuranPage() {
           {/* Tombol Tampilkan */}
           <button
             onClick={handleTerapkan}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-accent-600 hover:bg-accent-700 transition-colors shrink-0"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shrink-0 transition-colors hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
           >
             <Filter className="w-4 h-4" />
             Tampilkan

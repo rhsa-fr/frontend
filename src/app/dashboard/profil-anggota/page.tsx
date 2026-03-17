@@ -190,9 +190,11 @@ function AnggotaSelector({ selected, onSelect }: {
               <button key={a.id_anggota} type="button"
                 onClick={() => { onSelect(a); setQuery(''); setShow(false); setResults([]) }}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-50 text-left transition-colors border-b border-surface-100 last:border-0">
-                <div className="w-9 h-9 rounded-xl bg-ink-800 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-white">{a.nama_lengkap.slice(0, 2).toUpperCase()}</span>
-                </div>
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }} >
+                    <User className="w-5 h-5 text-white" />
+                  </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-ink-800 truncate">{a.nama_lengkap}</p>
                   <p className="text-[11px] text-ink-300 font-mono">{a.no_anggota}</p>
@@ -707,10 +709,11 @@ export default function ProfilAnggotaPage() {
 
               {/* Avatar header */}
               <div className="flex items-center gap-3 pb-4 mb-2 border-b border-surface-100">
-                <div className="w-12 h-12 rounded-xl bg-ink-800 flex items-center justify-center shrink-0">
-                  <span className="text-base font-bold text-white">
-                    {anggota.nama_lengkap.slice(0, 2).toUpperCase()}
-                  </span>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
+                >
+                  <User className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink-800 truncate">{anggota.nama_lengkap}</p>

@@ -32,10 +32,14 @@ interface JenisSimpanan {
 }
 
 interface SaldoItem {
+  id_anggota: number
+  nama_anggota: string
   id_jenis_simpanan: number
   nama_jenis_simpanan: string
-  is_wajib: boolean
+  total_setor: number
+  total_tarik: number
   saldo: number
+  is_wajib: boolean          // ← TAMBAHKAN INI
 }
 
 interface Simpanan {

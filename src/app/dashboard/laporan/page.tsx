@@ -311,7 +311,9 @@ export default function LaporanPage() {
             <RefreshCw className={`w-4 h-4 text-ink-400 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-accent-600 hover:bg-accent-700 transition-colors">
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
+          >
             <Printer className="w-4 h-4" />Cetak Laporan
           </button>
         </div>
