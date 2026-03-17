@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   User, Search, RefreshCw, X, Loader2, AlertCircle,
   ChevronLeft, ChevronRight, ArrowDownCircle, ArrowUpCircle,
-  PiggyBank, TrendingUp, TrendingDown, Wallet, Info
+  PiggyBank, TrendingUp, TrendingDown, Wallet, FileText, Printer,
+  ReceiptText,
 } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { cn } from '@/lib/utils'
@@ -32,14 +33,10 @@ interface JenisSimpanan {
 }
 
 interface SaldoItem {
-  id_anggota: number
-  nama_anggota: string
   id_jenis_simpanan: number
   nama_jenis_simpanan: string
-  total_setor: number
-  total_tarik: number
+  is_wajib: boolean
   saldo: number
-  is_wajib: boolean          // ← TAMBAHKAN INI
 }
 
 interface Simpanan {
@@ -62,13 +59,25 @@ interface PaginatedResponse {
   meta: { total: number; page: number; total_pages: number; skip: number; limit: number }
 }
 
+interface BuktiSimpananData {
+  no_transaksi:      string
+  nama_anggota:      string
+  nama_jenis:        string
+  tipe_transaksi:    'setor' | 'tarik'
+  nominal:           number
+  saldo_akhir:       number
+  tanggal_transaksi: string
+  keterangan?:       string
+  printed_at:        string
+}
+
 // ============================================================================
 // Helpers
 // ============================================================================
 
 function formatRupiah(n: number) {
   return new Intl.NumberFormat('id-ID', {
-    style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+    style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
   }).format(n)
 }
 
@@ -85,49 +94,41 @@ function Avatar({ size = 'sm' }: { size?: 'sm' | 'md' }) {
     ? { wrap: 'w-8 h-8 rounded-lg', icon: 'w-4 h-4' }
     : { wrap: 'w-10 h-10 rounded-xl', icon: 'w-5 h-5' }
   return (
-    <div
-      className={cn('flex items-center justify-center shrink-0', cls.wrap)}
-      style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
-    >
+    <div className={cn('flex items-center justify-center shrink-0', cls.wrap)}
+      style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}>
       <User className={cn(cls.icon, 'text-white')} />
     </div>
   )
 }
 
 // ============================================================================
-// Shared: AnggotaPicker
+// AnggotaPicker
 // ============================================================================
 
-interface AnggotaPickerProps {
+function AnggotaPicker({ selectedAnggota, onSelect, onClear, accentColor = 'blue' }: {
   selectedAnggota: Anggota | null
   onSelect: (a: Anggota) => void
   onClear: () => void
   accentColor?: 'blue' | 'red'
-}
-
-function AnggotaPicker({ selectedAnggota, onSelect, onClear, accentColor = 'blue' }: AnggotaPickerProps) {
-  const [search, setSearch]         = useState('')
-  const [list, setList]             = useState<Anggota[]>([])
-  const [showDrop, setShowDrop]     = useState(false)
-  const [loading, setLoading]       = useState(false)
-  const ref                         = useRef<HTMLDivElement>(null)
+}) {
+  const [search, setSearch]     = useState('')
+  const [list, setList]         = useState<Anggota[]>([])
+  const [showDrop, setShowDrop] = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const ref                     = useRef<HTMLDivElement>(null)
 
   const inputCls = accentColor === 'red'
     ? 'w-full h-10 pl-9 pr-3 rounded-xl border border-surface-300 text-sm text-ink-800 outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 bg-surface-50 focus:bg-white transition-all placeholder:text-ink-200'
     : 'w-full h-10 pl-9 pr-3 rounded-xl border border-surface-300 text-sm text-ink-800 outline-none focus:ring-2 focus:ring-[#2a7fc5]/20 focus:border-[#2a7fc5] bg-surface-50 focus:bg-white transition-all placeholder:text-ink-200'
 
-  const selectedBorder = accentColor === 'red'
-    ? 'border-red-300 bg-red-50'
-    : 'border-[#2a7fc5] bg-blue-50 ring-2 ring-[#2a7fc5]/20'
+  const selectedBorder = accentColor === 'red' ? 'border-red-300 bg-red-50' : 'border-[#2a7fc5] bg-blue-50 ring-2 ring-[#2a7fc5]/20'
 
   useEffect(() => {
     if (!search.trim()) { setList([]); return }
     const t = setTimeout(async () => {
       setLoading(true)
       try {
-        const res = await api.get<{ data: Anggota[] }>(
-          `/anggota?search=${encodeURIComponent(search)}&limit=6&status=aktif`
-        )
+        const res = await api.get<{ data: Anggota[] }>(`/anggota?search=${encodeURIComponent(search)}&limit=6&status=aktif`)
         setList(res.data)
       } catch { setList([]) }
       finally { setLoading(false) }
@@ -162,13 +163,10 @@ function AnggotaPicker({ selectedAnggota, onSelect, onClear, accentColor = 'blue
     <div ref={ref} className="relative">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" />
-        <input
-          value={search}
-          onChange={e => { setSearch(e.target.value); setShowDrop(true) }}
+        <input value={search} onChange={e => { setSearch(e.target.value); setShowDrop(true) }}
           onFocus={() => search && setShowDrop(true)}
           placeholder="Cari nama atau no. anggota..."
-          className={inputCls}
-        />
+          className={inputCls} />
       </div>
       {showDrop && search && (
         <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-surface-300 rounded-xl shadow-lg max-h-52 overflow-y-auto">
@@ -194,10 +192,154 @@ function AnggotaPicker({ selectedAnggota, onSelect, onClear, accentColor = 'blue
 }
 
 // ============================================================================
-// Modal Setor — pilih jenis simpanan
+// Bukti Simpanan Modal
 // ============================================================================
 
-function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
+function BuktiSimpanan({ bukti, onClose }: { bukti: BuktiSimpananData; onClose: () => void }) {
+  const printRef = useRef<HTMLDivElement>(null)
+
+  const handlePrint = () => {
+    const el = printRef.current
+    if (!el) return
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write(`
+      <html>
+      <head>
+        <title>Bukti Transaksi Simpanan</title>
+        <style>
+          body { font-family: 'Courier New', monospace; font-size: 12px; max-width: 380px; margin: 0 auto; padding: 16px; }
+          .divider { border-top: 1px dashed #999; margin: 8px 0; }
+          .row { display: flex; justify-content: space-between; margin: 4px 0; }
+          .bold { font-weight: bold; }
+          .center { text-align: center; }
+        </style>
+      </head>
+      <body>${el.innerHTML}</body>
+      </html>
+    `)
+    w.document.close()
+    w.focus()
+    w.print()
+    w.close()
+  }
+
+  const isSetor = bukti.tipe_transaksi === 'setor'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fade-in">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}>
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <h2 className="text-sm font-semibold text-ink-800">Bukti Transaksi Simpanan</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-surface-100 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-ink-400" />
+          </button>
+        </div>
+
+        {/* Receipt */}
+        <div className="px-6 py-5">
+          <div ref={printRef} className="font-mono text-[11px] text-ink-700">
+            <p style={{ textAlign:'center', fontWeight:'bold', fontSize:'13px', marginBottom:'2px' }}>
+              KOPERASI SIMPAN PINJAM
+            </p>
+            <p style={{ textAlign:'center', color:'#9ca3af', fontSize:'10px', marginBottom:'12px' }}>
+              Bukti Transaksi Simpanan
+            </p>
+
+            <div className="border-t border-dashed border-surface-300 my-2" />
+
+            <div style={{ textAlign:'center', margin:'8px 0' }}>
+              <span className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold',
+                isSetor ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+              )}>
+                {isSetor
+                  ? <><ArrowDownCircle className="w-3.5 h-3.5" /> SETORAN</>
+                  : <><ArrowUpCircle  className="w-3.5 h-3.5" /> PENARIKAN</>
+                }
+              </span>
+            </div>
+
+            <div className="border-t border-dashed border-surface-300 my-2" />
+
+            {[
+              ['No. Transaksi',  bukti.no_transaksi],
+              ['Anggota',        bukti.nama_anggota],
+              ['Jenis Simpanan', bukti.nama_jenis],
+              ['Tanggal',        bukti.tanggal_transaksi],
+            ].map(([label, val]) => (
+              <div key={label} className="flex items-start justify-between gap-2 mb-1.5">
+                <span className="text-ink-400 shrink-0 w-28">{label}</span>
+                <span className="font-semibold text-ink-800 text-right">{val}</span>
+              </div>
+            ))}
+
+            {bukti.keterangan && (
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <span className="text-ink-400 shrink-0 w-28">Keterangan</span>
+                <span className="font-semibold text-ink-800 text-right">{bukti.keterangan}</span>
+              </div>
+            )}
+
+            <div className="border-t border-dashed border-surface-300 my-2" />
+
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-ink-500 font-semibold">Nominal</span>
+              <span className={cn('text-sm font-bold', isSetor ? 'text-emerald-600' : 'text-red-500')}>
+                {isSetor ? '+' : '-'}{formatRupiah(bukti.nominal)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-ink-500 font-semibold">Saldo Akhir</span>
+              <span className="text-sm font-bold text-ink-800">{formatRupiah(bukti.saldo_akhir)}</span>
+            </div>
+
+            <div className="border-t border-dashed border-surface-300 my-2" />
+
+            <div className={cn('text-center text-xs font-bold py-1.5 rounded-lg',
+              isSetor ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700')}>
+              {isSetor ? '✓ SETORAN BERHASIL' : '✓ PENARIKAN BERHASIL'}
+            </div>
+
+            <p style={{ textAlign:'center', color:'#9ca3af', fontSize:'10px', marginTop:'8px' }}>
+              Dicetak: {bukti.printed_at}
+            </p>
+            <p style={{ textAlign:'center', color:'#9ca3af', fontSize:'10px' }}>
+              Dicetak oleh sistem koperasi
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-200">
+          <button onClick={onClose}
+            className="px-4 py-2 rounded-xl text-sm font-medium text-ink-600 border border-surface-300 hover:bg-surface-100 transition-colors">
+            Tutup
+          </button>
+          <button onClick={handlePrint}
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-colors hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}>
+            <Printer className="w-4 h-4" /> Cetak Bukti
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
+// Modal Setor
+// ============================================================================
+
+function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: (bukti: BuktiSimpananData) => void }) {
   const [selectedAnggota, setSelectedAnggota] = useState<Anggota | null>(null)
   const [jenisList, setJenisList]             = useState<JenisSimpanan[]>([])
   const [selectedJenis, setSelectedJenis]     = useState<JenisSimpanan | null>(null)
@@ -234,20 +376,13 @@ function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => 
     }
   }, [selectedJenis])
 
-  const handleNominalInput = (val: string) => {
-    if (nominalLocked) return
-    const num = parseAngka(val)
-    setNominal(num)
-    setNominalInput(num > 0 ? num.toLocaleString('id-ID') : '')
-  }
-
   const handleSubmit = async () => {
-    if (!selectedAnggota) { setError('Pilih anggota terlebih dahulu.'); return }
-    if (!selectedJenis)   { setError('Pilih jenis simpanan.'); return }
-    if (nominal <= 0)     { setError('Nominal harus lebih dari 0.'); return }
+    if (!selectedAnggota) { setError('Pilih anggota terlebih dahulu'); return }
+    if (!selectedJenis)   { setError('Pilih jenis simpanan'); return }
+    if (nominal <= 0)     { setError('Masukkan nominal yang valid'); return }
     setError(null); setLoading(true)
     try {
-      await api.post('/simpanan/setor', {
+      const result = await api.post<{ no_transaksi: string; saldo_akhir: number }>('/simpanan/setor', {
         id_anggota: selectedAnggota.id_anggota,
         id_jenis_simpanan: selectedJenis.id_jenis_simpanan,
         tanggal_transaksi: tanggal,
@@ -255,7 +390,18 @@ function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => 
         nominal,
         keterangan: keterangan.trim() || null,
       })
-      onSaved(); onClose()
+      onClose()
+      onSaved({
+        no_transaksi:      result.no_transaksi,
+        nama_anggota:      selectedAnggota.nama_lengkap,
+        nama_jenis:        selectedJenis.nama_jenis,
+        tipe_transaksi:    'setor',
+        nominal,
+        saldo_akhir:       result.saldo_akhir,
+        tanggal_transaksi: tanggal,
+        keterangan:        keterangan.trim() || undefined,
+        printed_at:        new Date().toLocaleString('id-ID'),
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menyimpan transaksi.')
     } finally { setLoading(false) }
@@ -268,7 +414,7 @@ function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col animate-fade-in">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col animate-fade-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
@@ -276,108 +422,60 @@ function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => 
             </div>
             <div>
               <h2 className="text-sm font-bold text-ink-800">Setor Simpanan</h2>
-              <p className="text-xs text-ink-300">Tambah setoran simpanan anggota</p>
+              <p className="text-xs text-ink-300">Input transaksi setoran</p>
             </div>
           </div>
           <button onClick={onClose} className="text-ink-300 hover:text-ink-600 transition-colors"><X className="w-5 h-5" /></button>
         </div>
-
-        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+        <div className="px-6 py-5 space-y-4">
           {error && (
             <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-red-50 border border-red-100">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
               <p className="text-xs text-red-600">{error}</p>
             </div>
           )}
-
           <div>
-            <p className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-3">Data Anggota</p>
             <label className="block text-xs font-semibold text-ink-600 mb-1.5">Anggota <span className="text-red-400">*</span></label>
-            <AnggotaPicker
-              selectedAnggota={selectedAnggota}
-              onSelect={setSelectedAnggota}
-              onClear={() => setSelectedAnggota(null)}
-              accentColor="blue"
-            />
+            <AnggotaPicker selectedAnggota={selectedAnggota} onSelect={setSelectedAnggota} onClear={() => setSelectedAnggota(null)} />
           </div>
-
-          <div className="border-t border-surface-200" />
-
           <div>
-            <p className="text-[10px] font-bold text-ink-300 uppercase tracking-widest mb-3">Detail Transaksi</p>
-            <div className="space-y-4">
-              {/* Jenis Simpanan */}
-              <div>
-                <label className="block text-xs font-semibold text-ink-600 mb-1.5">Jenis Simpanan <span className="text-red-400">*</span></label>
-                <div className="grid grid-cols-1 gap-2">
-                  {jenisList.length === 0
-                    ? <p className="text-xs text-ink-300 py-2">Memuat jenis simpanan...</p>
-                    : jenisList.map(j => (
-                      <button key={j.id_jenis_simpanan} onClick={() => setSelectedJenis(j)}
-                        className={cn(
-                          'flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all',
-                          selectedJenis?.id_jenis_simpanan === j.id_jenis_simpanan
-                            ? 'border-[#2a7fc5] bg-blue-50 ring-2 ring-[#2a7fc5]/20'
-                            : 'border-surface-300 bg-white hover:border-ink-200 hover:bg-surface-50'
-                        )}>
-                        <div className="flex items-center gap-3">
-                          <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0',
-                            selectedJenis?.id_jenis_simpanan === j.id_jenis_simpanan ? 'bg-[#2a7fc5] text-white' : 'bg-surface-100 text-ink-500')}>
-                            {j.kode_jenis}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-ink-800">{j.nama_jenis}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              {j.is_wajib && <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Wajib</span>}
-                              {j.deskripsi && <span className="text-[10px] text-ink-300 truncate max-w-[180px]">{j.deskripsi}</span>}
-                            </div>
-                          </div>
-                        </div>
-                        {j.nominal_tetap > 0 && (
-                          <div className="shrink-0 ml-2 text-right">
-                            <p className="text-xs font-bold text-emerald-600">{formatRupiah(j.nominal_tetap)}</p>
-                            <p className="text-[10px] text-ink-300">nominal</p>
-                          </div>
-                        )}
-                      </button>
-                    ))
-                  }
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-ink-600 mb-1.5">Tanggal Transaksi <span className="text-red-400">*</span></label>
-                <input type="date" value={tanggal} onChange={e => setTanggal(e.target.value)} className={inputCls} />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-ink-600 mb-1.5">Nominal <span className="text-red-400">*</span></label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400 font-medium">Rp</span>
-                  <input value={nominalInput} onChange={e => handleNominalInput(e.target.value)} placeholder="0"
-                    disabled={nominalLocked}
-                    className={cn(inputCls, 'pl-9', nominalLocked && 'opacity-70 cursor-not-allowed bg-surface-100')} />
-                  {nominalLocked && (
-                    <button onClick={() => setNominalLocked(false)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#2a7fc5] font-semibold hover:underline">Ubah</button>
-                  )}
-                </div>
-                {nominalLocked && <p className="text-[10px] text-ink-300 mt-1">Nominal otomatis dari jenis simpanan. Klik "Ubah" untuk mengganti.</p>}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-ink-600 mb-1.5">Keterangan</label>
-                <input value={keterangan} onChange={e => setKeterangan(e.target.value)} placeholder="Opsional" className={inputCls} />
-              </div>
+            <label className="block text-xs font-semibold text-ink-600 mb-1.5">Jenis Simpanan <span className="text-red-400">*</span></label>
+            <select value={selectedJenis?.id_jenis_simpanan ?? ''}
+              onChange={e => setSelectedJenis(jenisList.find(x => x.id_jenis_simpanan === Number(e.target.value)) ?? null)}
+              className={inputCls}>
+              <option value="">-- Pilih Jenis --</option>
+              {jenisList.map(j => <option key={j.id_jenis_simpanan} value={j.id_jenis_simpanan}>{j.nama_jenis}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-ink-600 mb-1.5">Tanggal</label>
+            <input type="date" value={tanggal} onChange={e => setTanggal(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-ink-600 mb-1.5">Nominal <span className="text-red-400">*</span></label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-400 font-medium">Rp</span>
+              <input type="text" inputMode="numeric" value={nominalInput}
+                onChange={e => {
+                  if (nominalLocked) return
+                  const num = parseAngka(e.target.value)
+                  setNominal(num)
+                  setNominalInput(num > 0 ? num.toLocaleString('id-ID') : '')
+                }}
+                disabled={nominalLocked} placeholder="0"
+                className={cn(inputCls, 'pl-8', nominalLocked && 'bg-surface-100 cursor-not-allowed')} />
             </div>
+            {nominalLocked && <p className="text-[10px] text-ink-300 mt-1">Nominal tetap sesuai jenis simpanan</p>}
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-ink-600 mb-1.5">Keterangan</label>
+            <input value={keterangan} onChange={e => setKeterangan(e.target.value)} placeholder="Opsional" className={inputCls} />
           </div>
         </div>
-
         <div className="flex gap-2 px-6 py-4 border-t border-surface-200 shrink-0">
           <button onClick={onClose} className="flex-1 h-10 rounded-xl border border-surface-300 text-sm font-medium text-ink-600 hover:bg-surface-100 transition-all">Batal</button>
-          <button onClick={handleSubmit}
-            disabled={loading || !selectedAnggota || !selectedJenis || nominal <= 0}
-            className="flex-1 h-10 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <button onClick={handleSubmit} disabled={loading || !selectedAnggota || !selectedJenis || nominal <= 0}
+            className="flex-1 h-10 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Menyimpan...</> : <><ArrowDownCircle className="w-4 h-4" />Simpan Setoran</>}
           </button>
         </div>
@@ -387,13 +485,14 @@ function ModalSetor({ open, onClose, onSaved }: { open: boolean; onClose: () => 
 }
 
 // ============================================================================
-// Modal Tarik — otomatis Simpanan Sukarela, tanpa pilih jenis
+// Modal Tarik
 // ============================================================================
 
-function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
+function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: (bukti: BuktiSimpananData) => void }) {
   const [selectedAnggota, setSelectedAnggota] = useState<Anggota | null>(null)
   const [saldoSukarela, setSaldoSukarela]     = useState<number | null>(null)
   const [idJenisSukarela, setIdJenisSukarela] = useState<number | null>(null)
+  const [namaJenisSukarela, setNamaJenisSukarela] = useState<string>('Simpanan Sukarela')
   const [loadingSaldo, setLoadingSaldo]       = useState(false)
   const [tanggal, setTanggal]                 = useState(new Date().toISOString().slice(0, 10))
   const [nominal, setNominal]                 = useState(0)
@@ -406,72 +505,56 @@ function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => 
     if (open) {
       setSelectedAnggota(null); setSaldoSukarela(null); setIdJenisSukarela(null)
       setTanggal(new Date().toISOString().slice(0, 10))
-      setNominal(0); setNominalInput('')
-      setKeterangan(''); setError(null)
+      setNominal(0); setNominalInput(''); setKeterangan(''); setError(null)
     }
   }, [open])
 
-  // Fetch saldo Simpanan Sukarela saat anggota dipilih
   useEffect(() => {
     if (!selectedAnggota) { setSaldoSukarela(null); setIdJenisSukarela(null); return }
     setLoadingSaldo(true)
     api.get<SaldoItem[]>(`/simpanan/saldo/${selectedAnggota.id_anggota}`)
       .then(list => {
-        console.log('[DEBUG saldo]', JSON.stringify(list))
-
-        // Cari jenis yang bisa ditarik bebas:
-        // Prioritas 1 — is_wajib === false (jika backend sudah return field ini)
-        // Prioritas 2 — nama mengandung "sukarela" (fallback jika backend belum update)
-        // Prioritas 3 — jenis apapun yang is_wajib !== true
         const cari = (arr: SaldoItem[]) =>
           arr.find(s => s.is_wajib === false)
           ?? arr.find(s => s.nama_jenis_simpanan?.toLowerCase().includes('sukarela'))
           ?? arr.find(s => !s.is_wajib)
-
-        const denganSaldo = cari(list.filter(s => s.saldo > 0))
-        const tanpaSaldo  = cari(list)
-        const sukarela    = denganSaldo ?? tanpaSaldo
-
-        console.log('[DEBUG sukarela]', sukarela)
-
-        if (sukarela) {
-          setSaldoSukarela(sukarela.saldo)
-          setIdJenisSukarela(sukarela.id_jenis_simpanan)
-        } else {
-          setSaldoSukarela(0); setIdJenisSukarela(null)
-        }
+        const sukarela = cari(list.filter(s => s.saldo > 0)) ?? cari(list)
+        if (sukarela) { setSaldoSukarela(sukarela.saldo); setIdJenisSukarela(sukarela.id_jenis_simpanan); setNamaJenisSukarela(sukarela.nama_jenis_simpanan) }
+        else { setSaldoSukarela(0); setIdJenisSukarela(null) }
       })
-      .catch((err) => {
-        console.error('[DEBUG saldo error]', err)
-        setSaldoSukarela(0); setIdJenisSukarela(null)
-      })
+      .catch(() => { setSaldoSukarela(null); setIdJenisSukarela(null) })
       .finally(() => setLoadingSaldo(false))
   }, [selectedAnggota])
 
-  const handleNominalInput = (val: string) => {
-    const num = parseAngka(val)
-    setNominal(num)
-    setNominalInput(num > 0 ? num.toLocaleString('id-ID') : '')
-  }
-
   const handleSubmit = async () => {
-    if (!selectedAnggota) { setError('Pilih anggota terlebih dahulu.'); return }
-    if (nominal <= 0)     { setError('Nominal harus lebih dari 0.'); return }
-    if (!idJenisSukarela) { setError('Anggota tidak memiliki Simpanan Sukarela.'); return }
+    if (!selectedAnggota) { setError('Pilih anggota terlebih dahulu'); return }
+    if (!idJenisSukarela) { setError('Anggota tidak memiliki simpanan sukarela'); return }
+    if (nominal <= 0)     { setError('Masukkan nominal yang valid'); return }
     if (saldoSukarela !== null && nominal > saldoSukarela) {
-      setError(`Saldo tidak cukup. Saldo Sukarela tersedia: ${formatRupiah(saldoSukarela)}`); return
+      setError(`Saldo Sukarela tersedia: ${formatRupiah(saldoSukarela)}`); return
     }
     setError(null); setLoading(true)
     try {
-      await api.post('/simpanan/tarik', {
-        id_anggota:        selectedAnggota.id_anggota,
+      const result = await api.post<{ no_transaksi: string; saldo_akhir: number }>('/simpanan/tarik', {
+        id_anggota: selectedAnggota.id_anggota,
         id_jenis_simpanan: idJenisSukarela,
         tanggal_transaksi: tanggal,
+        tipe_transaksi: 'tarik',
+        nominal,
+        keterangan: keterangan.trim() || null,
+      })
+      onClose()
+      onSaved({
+        no_transaksi:      result.no_transaksi,
+        nama_anggota:      selectedAnggota.nama_lengkap,
+        nama_jenis:        namaJenisSukarela,
         tipe_transaksi:    'tarik',
         nominal,
-        keterangan:        keterangan.trim() || null,
+        saldo_akhir:       result.saldo_akhir,
+        tanggal_transaksi: tanggal,
+        keterangan:        keterangan.trim() || undefined,
+        printed_at:        new Date().toLocaleString('id-ID'),
       })
-      onSaved(); onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menyimpan transaksi.')
     } finally { setLoading(false) }
@@ -486,8 +569,6 @@ function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col animate-fade-in">
-
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
@@ -500,8 +581,6 @@ function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => 
           </div>
           <button onClick={onClose} className="text-ink-300 hover:text-ink-600 transition-colors"><X className="w-5 h-5" /></button>
         </div>
-
-        {/* Body */}
         <div className="px-6 py-5 space-y-4">
           {error && (
             <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-red-50 border border-red-100">
@@ -509,67 +588,42 @@ function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => 
               <p className="text-xs text-red-600">{error}</p>
             </div>
           )}
-
-          {/* Anggota */}
           <div>
             <label className="block text-xs font-semibold text-ink-600 mb-1.5">Anggota <span className="text-red-400">*</span></label>
-            <AnggotaPicker
-              selectedAnggota={selectedAnggota}
-              onSelect={setSelectedAnggota}
+            <AnggotaPicker selectedAnggota={selectedAnggota} onSelect={setSelectedAnggota}
               onClear={() => { setSelectedAnggota(null); setSaldoSukarela(null); setIdJenisSukarela(null) }}
-              accentColor="red"
-            />
+              accentColor="red" />
           </div>
-
-          {/* Card saldo Sukarela */}
           {selectedAnggota && (
-            <div className={cn(
-              'flex items-center justify-between px-4 py-3 rounded-xl border transition-all',
-              loadingSaldo ? 'bg-surface-50 border-surface-200'
-                : saldoSukarela === 0 ? 'bg-red-50 border-red-100'
-                : 'bg-emerald-50 border-emerald-100'
-            )}>
-              <div className="flex items-center gap-2.5">
-                <PiggyBank className={cn('w-4 h-4 shrink-0',
-                  loadingSaldo ? 'text-ink-300' : saldoSukarela === 0 ? 'text-red-400' : 'text-emerald-500')} />
-                <div>
-                  <p className="text-xs font-semibold text-ink-700">Simpanan Sukarela</p>
-                  <p className="text-[10px] text-ink-400">Saldo yang dapat ditarik</p>
-                </div>
-              </div>
+            <div className={cn('flex items-center justify-between px-4 py-3 rounded-xl border transition-all',
+              loadingSaldo ? 'bg-surface-50 border-surface-200' :
+              saldoSukarela && saldoSukarela > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200')}>
+              <span className="text-xs text-ink-500">Saldo Sukarela</span>
               {loadingSaldo
                 ? <Loader2 className="w-4 h-4 animate-spin text-ink-300" />
-                : <span className={cn('text-base font-bold',
-                    saldoSukarela === 0 ? 'text-red-500' : 'text-emerald-600')}>
+                : <span className={cn('text-sm font-bold', saldoSukarela && saldoSukarela > 0 ? 'text-emerald-700' : 'text-amber-700')}>
                     {saldoSukarela !== null ? formatRupiah(saldoSukarela) : '—'}
                   </span>
               }
             </div>
           )}
-
-          {/* Peringatan tidak ada Simpanan Sukarela */}
-          {selectedAnggota && !loadingSaldo && !idJenisSukarela && (
-            <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-amber-50 border border-amber-100">
-              <Info className="w-4 h-4 text-amber-500 shrink-0" />
-              <p className="text-xs text-amber-700">Anggota ini belum memiliki Simpanan Sukarela atau saldo kosong.</p>
-            </div>
-          )}
-
-          {/* Tanggal */}
           <div>
-            <label className="block text-xs font-semibold text-ink-600 mb-1.5">Tanggal Transaksi <span className="text-red-400">*</span></label>
+            <label className="block text-xs font-semibold text-ink-600 mb-1.5">Tanggal</label>
             <input type="date" value={tanggal} onChange={e => setTanggal(e.target.value)} className={inputCls} />
           </div>
-
-          {/* Nominal */}
           <div>
             <label className="block text-xs font-semibold text-ink-600 mb-1.5">Nominal <span className="text-red-400">*</span></label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400 font-medium">Rp</span>
-              <input value={nominalInput} onChange={e => handleNominalInput(e.target.value)} placeholder="0"
-                className={cn(inputCls, 'pl-9')} />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-400 font-medium">Rp</span>
+              <input type="text" inputMode="numeric" value={nominalInput}
+                onChange={e => {
+                  const num = parseAngka(e.target.value)
+                  setNominal(num)
+                  setNominalInput(num > 0 ? num.toLocaleString('id-ID') : '')
+                }}
+                placeholder="0" className={cn(inputCls, 'pl-8')} />
             </div>
-            {selectedAnggota && saldoSukarela !== null && nominal > 0 && !loadingSaldo && (
+            {nominal > 0 && saldoSukarela !== null && (
               <p className={cn('text-[10px] mt-1', saldoCukup ? 'text-emerald-600' : 'text-red-500')}>
                 {saldoCukup
                   ? `Sisa saldo setelah tarik: ${formatRupiah(saldoSukarela - nominal)}`
@@ -577,20 +631,16 @@ function ModalTarik({ open, onClose, onSaved }: { open: boolean; onClose: () => 
               </p>
             )}
           </div>
-
-          {/* Keterangan */}
           <div>
             <label className="block text-xs font-semibold text-ink-600 mb-1.5">Keterangan</label>
             <input value={keterangan} onChange={e => setKeterangan(e.target.value)} placeholder="Opsional" className={inputCls} />
           </div>
         </div>
-
-        {/* Footer */}
         <div className="flex gap-2 px-6 py-4 border-t border-surface-200 shrink-0">
           <button onClick={onClose} className="flex-1 h-10 rounded-xl border border-surface-300 text-sm font-medium text-ink-600 hover:bg-surface-100 transition-all">Batal</button>
           <button onClick={handleSubmit}
             disabled={loading || !selectedAnggota || nominal <= 0 || !idJenisSukarela || (saldoSukarela !== null && nominal > saldoSukarela)}
-            className="flex-1 h-10 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            className="flex-1 h-10 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Menyimpan...</> : <><ArrowUpCircle className="w-4 h-4" />Simpan Penarikan</>}
           </button>
         </div>
@@ -613,10 +663,9 @@ export default function SimpananPage() {
   const [modalSetor, setModalSetor] = useState(false)
   const [modalTarik, setModalTarik] = useState(false)
   const [counts, setCounts]         = useState({ setor: 0, tarik: 0, semua: 0 })
+  const [buktiSimpanan, setBuktiSimpanan] = useState<BuktiSimpananData | null>(null)
   const { user } = useAuth()
-  // Setor & Tarik hanya admin dan bendahara, ketua hanya bisa lihat
   const canTransaksi = user?.role === 'admin' || user?.role === 'bendahara'
-
   const LIMIT = 10
 
   const fetchData = useCallback(async () => {
@@ -661,7 +710,7 @@ export default function SimpananPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={fetchData}
-            className="w-8 h-8 rounded-lg border border-surface-300 flex items-center justify-center text-ink-400 hover:bg-surface-100 transition-all" title="Refresh">
+            className="w-8 h-8 rounded-lg border border-surface-300 flex items-center justify-center text-ink-400 hover:bg-surface-100 transition-all">
             <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
           </button>
           {canTransaksi && (
@@ -694,13 +743,8 @@ export default function SimpananPage() {
         ))}
       </div>
 
-      {/* Filter bar */}
+      {/* Filter */}
       <div className="bg-white rounded-xl border border-surface-300 shadow-card px-4 py-3 flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" />
-          <input placeholder="Cari no. transaksi, nama..."
-            className="w-full h-9 pl-9 pr-3 rounded-full border border-surface-300 text-sm text-ink-800 outline-none focus:ring-2 focus:ring-[#2a7fc5]/20 focus:border-[#2a7fc5] placeholder:text-ink-200 bg-surface-50 transition-all" />
-        </div>
         <div className="flex items-center gap-1.5">
           {([
             { value: '' as const,      label: 'Semua' },
@@ -714,10 +758,7 @@ export default function SimpananPage() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <button onClick={fetchData} className="text-ink-300 hover:text-ink-600 transition-colors">
-            <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-          </button>
+        <div className="ml-auto">
           <span className="text-xs text-ink-300">{meta.total} transaksi</span>
         </div>
       </div>
@@ -735,7 +776,7 @@ export default function SimpananPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-surface-200 bg-surface-50">
-              {['NO. TRANSAKSI', 'ANGGOTA', 'JENIS', 'TIPE', 'NOMINAL', 'SALDO AKHIR', 'TANGGAL', 'KETERANGAN'].map(h => (
+              {['NO. TRANSAKSI','ANGGOTA','JENIS','TIPE','NOMINAL','SALDO AKHIR','TANGGAL','AKSI'].map(h => (
                 <th key={h} className="text-left text-[10px] font-bold text-ink-300 tracking-widest uppercase px-4 py-3 whitespace-nowrap">{h}</th>
               ))}
             </tr>
@@ -751,36 +792,51 @@ export default function SimpananPage() {
                 <PiggyBank className="w-8 h-8 text-ink-200 mx-auto mb-2" />
                 <p className="text-sm text-ink-300">Belum ada transaksi simpanan</p>
               </td></tr>
-            ) : (
-              data.map((s, idx) => (
-                <tr key={s.id_simpanan}
-                  className={cn('border-b border-surface-100 hover:bg-surface-50 transition-colors', idx === data.length - 1 && 'border-b-0')}>
-                  <td className="px-4 py-3 text-xs font-mono text-ink-400 whitespace-nowrap">{s.no_transaksi}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar size="sm" />
-                      <span className="font-semibold text-ink-800 whitespace-nowrap">{s.nama_anggota ?? '—'}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-ink-600 whitespace-nowrap">{s.nama_jenis_simpanan ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
-                      s.tipe_transaksi === 'setor' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500')}>
-                      {s.tipe_transaksi === 'setor'
-                        ? <><ArrowDownCircle className="w-3 h-3" />Setor</>
-                        : <><ArrowUpCircle className="w-3 h-3" />Tarik</>}
-                    </span>
-                  </td>
-                  <td className={cn('px-4 py-3 font-bold whitespace-nowrap',
-                    s.tipe_transaksi === 'setor' ? 'text-emerald-600' : 'text-red-500')}>
-                    {s.tipe_transaksi === 'setor' ? '+' : '-'}{formatRupiah(s.nominal)}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-ink-800 whitespace-nowrap">{formatRupiah(s.saldo_akhir)}</td>
-                  <td className="px-4 py-3 text-ink-500 whitespace-nowrap">{s.tanggal_transaksi}</td>
-                  <td className="px-4 py-3 text-ink-400 text-xs">{s.keterangan || '—'}</td>
-                </tr>
-              ))
-            )}
+            ) : data.map((s, idx) => (
+              <tr key={s.id_simpanan}
+                className={cn('border-b border-surface-100 hover:bg-surface-50 transition-colors', idx === data.length - 1 && 'border-b-0')}>
+                <td className="px-4 py-3 text-xs font-mono text-ink-400 whitespace-nowrap">{s.no_transaksi}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar size="sm" />
+                    <span className="font-semibold text-ink-800 whitespace-nowrap">{s.nama_anggota ?? '—'}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-ink-600 whitespace-nowrap">{s.nama_jenis_simpanan ?? '—'}</td>
+                <td className="px-4 py-3">
+                  <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
+                    s.tipe_transaksi === 'setor' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500')}>
+                    {s.tipe_transaksi === 'setor'
+                      ? <><ArrowDownCircle className="w-3 h-3" />Setor</>
+                      : <><ArrowUpCircle  className="w-3 h-3" />Tarik</>}
+                  </span>
+                </td>
+                <td className={cn('px-4 py-3 font-bold whitespace-nowrap',
+                  s.tipe_transaksi === 'setor' ? 'text-emerald-600' : 'text-red-500')}>
+                  {s.tipe_transaksi === 'setor' ? '+' : '-'}{formatRupiah(s.nominal)}
+                </td>
+                <td className="px-4 py-3 font-semibold text-ink-800 whitespace-nowrap">{formatRupiah(s.saldo_akhir)}</td>
+                <td className="px-4 py-3 text-ink-500 whitespace-nowrap">{s.tanggal_transaksi}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => setBuktiSimpanan({
+                      no_transaksi:      s.no_transaksi,
+                      nama_anggota:      s.nama_anggota ?? '—',
+                      nama_jenis:        s.nama_jenis_simpanan ?? '—',
+                      tipe_transaksi:    s.tipe_transaksi,
+                      nominal:           s.nominal,
+                      saldo_akhir:       s.saldo_akhir,
+                      tanggal_transaksi: s.tanggal_transaksi,
+                      keterangan:        s.keterangan,
+                      printed_at:        new Date().toLocaleString('id-ID'),
+                    })}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-surface-300 text-ink-500 text-[10px] font-medium hover:bg-surface-100 transition-colors whitespace-nowrap"
+                  >
+                    <ReceiptText className="w-3 h-3" /> Bukti
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -791,32 +847,36 @@ export default function SimpananPage() {
           <p className="text-xs text-ink-300">Halaman {meta.page} dari {meta.total_pages} ({meta.total} total)</p>
           <div className="flex items-center gap-1">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              className="w-8 h-8 rounded-lg border border-surface-300 flex items-center justify-center text-ink-400 hover:bg-surface-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+              className="w-8 h-8 rounded-lg border border-surface-300 flex items-center justify-center text-ink-400 hover:bg-surface-100 disabled:opacity-40 transition-all">
               <ChevronLeft className="w-4 h-4" />
             </button>
             {Array.from({ length: meta.total_pages }, (_, i) => i + 1)
               .filter(p => p === 1 || p === meta.total_pages || Math.abs(p - page) <= 1)
               .map((p, i, arr) => (
-                <>
-                  {i > 0 && arr[i - 1] !== p - 1 && <span key={`d${p}`} className="text-ink-300 text-xs px-1">…</span>}
-                  <button key={p} onClick={() => setPage(p)}
+                <span key={p}>
+                  {i > 0 && arr[i - 1] !== p - 1 && <span className="text-ink-300 text-xs px-1">…</span>}
+                  <button onClick={() => setPage(p)}
                     className={cn('w-8 h-8 rounded-lg text-xs font-medium transition-all',
                       p === page ? 'text-white shadow-sm' : 'border border-surface-300 text-ink-500 hover:bg-surface-100')}
                     style={p === page ? { background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' } : {}}>
                     {p}
                   </button>
-                </>
+                </span>
               ))}
             <button onClick={() => setPage(p => Math.min(meta.total_pages, p + 1))} disabled={page === meta.total_pages}
-              className="w-8 h-8 rounded-lg border border-surface-300 flex items-center justify-center text-ink-400 hover:bg-surface-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+              className="w-8 h-8 rounded-lg border border-surface-300 flex items-center justify-center text-ink-400 hover:bg-surface-100 disabled:opacity-40 transition-all">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      <ModalSetor open={modalSetor} onClose={() => setModalSetor(false)} onSaved={fetchData} />
-      <ModalTarik open={modalTarik} onClose={() => setModalTarik(false)} onSaved={fetchData} />
+      <ModalSetor open={modalSetor} onClose={() => setModalSetor(false)} onSaved={(bukti) => { fetchData(); setBuktiSimpanan(bukti) }} />
+      <ModalTarik open={modalTarik} onClose={() => setModalTarik(false)} onSaved={(bukti) => { fetchData(); setBuktiSimpanan(bukti) }} />
+
+      {buktiSimpanan && (
+        <BuktiSimpanan bukti={buktiSimpanan} onClose={() => setBuktiSimpanan(null)} />
+      )}
     </div>
   )
 }
