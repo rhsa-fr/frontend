@@ -7,6 +7,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import ModalGantiPassword from '../ModalGantiPassword'
+import { api } from '@/lib/axios'
 
 const PAGE_TITLES: Record<string, { title: string; description: string }> = {
   '/dashboard':                { title: 'Dashboard',      description: 'Ringkasan data koperasi'          },
@@ -29,13 +30,6 @@ const ROLE_COLORS: Record<string, string> = {
   bendahara: 'bg-emerald-100 text-emerald-700',
 }
 
-const NOTIFICATIONS = [
-  { id: 1, type: 'warning', title: 'Angsuran Jatuh Tempo',  desc: '3 angsuran belum dibayar hari ini',                          time: '5 mnt lalu', read: false },
-  { id: 2, type: 'info',    title: 'Pinjaman Baru',         desc: 'Pengajuan pinjaman dari Budi Santoso menunggu persetujuan',  time: '1 jam lalu', read: false },
-  { id: 3, type: 'success', title: 'Simpanan Masuk',        desc: 'Simpanan wajib bulan Maret telah diproses',                  time: '2 jam lalu', read: true  },
-  { id: 4, type: 'info',    title: 'Anggota Baru',          desc: 'Siti Rahayu berhasil terdaftar sebagai anggota',             time: 'Kemarin',    read: true  },
-]
-
 const QUICK_LINKS = [
   { label: 'Dashboard', href: '/dashboard'                },
   { label: 'Anggota',   href: '/dashboard/anggota'        },
@@ -49,6 +43,16 @@ const NOTIF_COLORS: Record<string, string> = {
   warning: 'bg-amber-400', info: 'bg-blue-400', success: 'bg-emerald-400',
 }
 
+interface Notification {
+  id: number
+  type: 'warning' | 'info' | 'success'
+  title: string
+  desc: string
+  time: string
+  read: boolean
+  href?: string
+}
+
 export default function Header() {
   const pathname = usePathname()
   const router   = useRouter()
@@ -58,9 +62,10 @@ export default function Header() {
   const [searchQuery,    setSearchQuery]    = useState('')
   const [notifOpen,      setNotifOpen]      = useState(false)
   const [userMenuOpen,   setUserMenuOpen]   = useState(false)
-  const [notifications,  setNotifications]  = useState(NOTIFICATIONS)
+  const [notifications,  setNotifications]  = useState<Notification[]>([])
+  const [notifLoading,   setNotifLoading]   = useState(true)
   const [loggingOut,     setLoggingOut]     = useState(false)
-  const [confirmLogout,  setConfirmLogout]  = useState(false)   // ← BARU
+  const [confirmLogout,  setConfirmLogout]  = useState(false)
   const [gantiPassword,  setGantiPassword]  = useState(false)
 
   const searchRef  = useRef<HTMLDivElement>(null)
@@ -84,6 +89,80 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  // Fetch notifications dari API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setNotifLoading(true)
+        // Fetch data dari berbagai endpoint untuk membuat notifikasi
+        const angsuranRes = await api.get<any>('/angsuran?limit=100').catch(() => ({ data: [] }))
+        const pinjamanRes = await api.get<any>('/pinjaman?limit=100').catch(() => ({ data: [] }))
+
+        const notifs: Notification[] = []
+        let id = 1
+
+        // Ekstrak data dari response (bisa array langsung atau { data: [] })
+        const angsuranList = Array.isArray(angsuranRes) ? angsuranRes : (angsuranRes?.data || [])
+        const pinjamanList = Array.isArray(pinjamanRes) ? pinjamanRes : (pinjamanRes?.data || [])
+
+        // Notifikasi: Angsuran jatuh tempo (belum dibayar)
+        const overdueAngsuran = (Array.isArray(angsuranList) ? angsuranList : []).filter((a: any) => 
+          a.status === 'pending' || a.status === 'belum_dibayar' || a.status === 'overdue'
+        )
+        if (overdueAngsuran.length > 0) {
+          notifs.push({
+            id: id++,
+            type: 'warning',
+            title: 'Angsuran Jatuh Tempo',
+            desc: `${overdueAngsuran.length} angsuran belum dibayar`,
+            time: 'Hari ini',
+            read: false,
+            href: '/dashboard/angsuran',
+          })
+        }
+
+        // Notifikasi: Pinjaman menunggu persetujuan
+        const pendingLoans = (Array.isArray(pinjamanList) ? pinjamanList : []).filter((p: any) => 
+          p.status === 'pending'
+        )
+        if (pendingLoans.length > 0) {
+          notifs.push({
+            id: id++,
+            type: 'info',
+            title: 'Pinjaman Menunggu Persetujuan',
+            desc: `${pendingLoans.length} pengajuan pinjaman menunggu persetujuan`,
+            time: 'Hari ini',
+            read: false,
+            href: '/dashboard/pinjaman',
+          })
+        }
+
+        // Jika tidak ada notifikasi, tampilkan info
+        if (notifs.length === 0) {
+          notifs.push({
+            id: id++,
+            type: 'success',
+            title: 'Semua Lancar',
+            desc: 'Tidak ada pemberitahuan penting saat ini',
+            time: 'Sekarang',
+            read: true,
+          })
+        }
+
+        setNotifications(notifs)
+      } catch (error) {
+        console.error('Gagal memuat notifikasi:', error)
+      } finally {
+        setNotifLoading(false)
+      }
+    }
+
+    fetchNotifications()
+    // Refresh notifikasi setiap 30 detik
+    const interval = setInterval(fetchNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [user?.id])
+
   const filteredLinks = searchQuery.trim()
     ? QUICK_LINKS.filter(l => l.label.toLowerCase().includes(searchQuery.toLowerCase()))
     : QUICK_LINKS
@@ -91,6 +170,19 @@ export default function Header() {
   const markAllRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   }, [])
+
+  const handleNotificationClick = useCallback((notif: Notification) => {
+    // Tandai notifikasi sebagai sudah dibaca
+    setNotifications(prev =>
+      prev.map(n => n.id === notif.id ? { ...n, read: true } : n)
+    )
+    // Navigate ke halaman jika ada href
+    if (notif.href) {
+      router.push(notif.href)
+    }
+    // Close dropdown
+    setNotifOpen(false)
+  }, [router])
 
   // Buka dialog konfirmasi (bukan langsung logout)
   const openConfirm = useCallback(() => {
@@ -209,24 +301,35 @@ export default function Header() {
                   )}
                 </div>
                 <div className="max-h-72 overflow-y-auto divide-y divide-surface-100">
-                  {notifications.map(notif => (
-                    <div key={notif.id}
-                      className={cn('flex gap-3 px-4 py-3 transition-colors cursor-default',
-                        !notif.read ? 'bg-blue-50/40' : 'hover:bg-surface-50')}>
-                      <span className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', NOTIF_COLORS[notif.type])} />
-                      <div className="flex-1 min-w-0">
-                        <p className={cn('text-xs font-semibold leading-snug', notif.read ? 'text-ink-600' : 'text-ink-800')}>
-                          {notif.title}
-                        </p>
-                        <p className="text-[11px] text-ink-400 mt-0.5 leading-relaxed line-clamp-2">{notif.desc}</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Clock className="w-2.5 h-2.5 text-ink-200" />
-                          <p className="text-[10px] text-ink-300">{notif.time}</p>
-                        </div>
-                      </div>
-                      {!notif.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
+                  {notifLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-4 h-4 animate-spin text-ink-400" />
                     </div>
-                  ))}
+                  ) : notifications.length > 0 ? (
+                    notifications.map(notif => (
+                      <button key={notif.id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={cn('w-full text-left flex gap-3 px-4 py-3 transition-colors',
+                          !notif.read ? 'bg-blue-50/40 hover:bg-blue-50/60' : 'hover:bg-surface-50')}>
+                        <span className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', NOTIF_COLORS[notif.type])} />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn('text-xs font-semibold leading-snug', notif.read ? 'text-ink-600' : 'text-ink-800')}>
+                            {notif.title}
+                          </p>
+                          <p className="text-[11px] text-ink-400 mt-0.5 leading-relaxed line-clamp-2">{notif.desc}</p>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Clock className="w-2.5 h-2.5 text-ink-200" />
+                            <p className="text-[10px] text-ink-300">{notif.time}</p>
+                          </div>
+                        </div>
+                        {!notif.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-center py-8 text-ink-400">
+                      <p className="text-xs">Tidak ada notifikasi</p>
+                    </div>
+                  )}
                 </div>
                 <div className="border-t border-surface-200 px-4 py-2.5">
                   <p className="text-[11px] text-ink-300 text-center">Notifikasi dari sistem koperasi</p>

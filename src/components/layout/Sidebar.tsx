@@ -17,10 +17,27 @@ import {
   ChevronRight,
   Loader2,
   User,
+  Settings,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
+import { api } from '@/lib/axios'
+
+interface Setting {
+  id_setting: number
+  nama_koperasi: string
+  deskripsi?: string
+  alamat?: string
+  no_telepon?: string
+  email?: string
+  bunga_default: number
+  denda_keterlambatan: number
+  min_nominal_pinjaman: number
+  max_nominal_pinjaman?: number
+  max_lama_angsuran: number
+  saldo_minimal_simpanan: number
+}
 
 interface NavItem {
   label: string
@@ -38,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Pinjaman',       href: '/dashboard/pinjaman',       icon: CreditCard,      section: 'keuangan' },
   { label: 'Angsuran',       href: '/dashboard/angsuran',       icon: Receipt,         section: 'keuangan' },
   { label: 'Laporan',        href: '/dashboard/laporan',        icon: FileBarChart2,   section: 'report'   },
+  { label: 'Pengaturan',     href: '/dashboard/settings',       icon: Settings,        section: 'report'   },
 ]
 
 const SECTION_LABELS: Record<string, string> = {
@@ -56,9 +74,23 @@ export default function Sidebar() {
   const [collapsed, setCollapsed]       = useState(false)
   const [loggingOut, setLoggingOut]     = useState(false)
   const [confirmLogout, setConfirmLogout] = useState(false)
+  const [setting, setSetting] = useState<Setting | null>(null)
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
+
+  // Fetch setting dari API
+  useEffect(() => {
+    const fetchSetting = async () => {
+      try {
+        const data = await api.get<Setting>('/setting')
+        setSetting(data)
+      } catch (error) {
+        console.error('Gagal memuat setting:', error)
+      }
+    }
+    fetchSetting()
+  }, [])
 
   const handleLogout = async () => {
     setConfirmLogout(false)
@@ -88,10 +120,12 @@ export default function Sidebar() {
             collapsed && 'justify-center px-0'
           )}
         >
-          <Image src="/logo.svg" alt="KOPDAR" width={32} height={32} className="shrink-0 object-contain" priority />
+          <Image src="/logo.svg" alt={setting?.nama_koperasi || 'Logo'} width={32} height={32} className="shrink-0 object-contain" priority />
           {!collapsed && (
             <div className="animate-fade-in overflow-hidden">
-              <p className="text-sm font-bold text-ink-800 leading-none tracking-widest">KOPDAR</p>
+              <p className="text-sm font-bold text-ink-800 leading-none tracking-widest">
+                {setting?.nama_koperasi || 'KOPERASI'}
+              </p>
               <p className="text-[9px] text-ink-300 mt-0.5 tracking-wider uppercase">Simpan Pinjam</p>
             </div>
           )}

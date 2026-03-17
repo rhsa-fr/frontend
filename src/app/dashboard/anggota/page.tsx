@@ -9,6 +9,7 @@ import {
 import { api } from '@/lib/axios'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
+import ExportButtons from '@/components/ExportButtons'
 
 // ============================================================================
 // Types
@@ -395,6 +396,21 @@ export default function AnggotaPage() {
           >
             <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
           </button>
+          {/* Export Buttons */}
+          <ExportButtons
+            data={data}
+            filename={`Daftar_Anggota_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}`}
+            sheetName="Anggota"
+            columns={[
+              { key: 'no_anggota', label: 'No. Anggota' },
+              { key: 'nama_lengkap', label: 'Nama Lengkap' },
+              { key: 'email', label: 'Email' },
+              { key: 'no_telepon', label: 'No. Telepon' },
+              { key: 'status', label: 'Status' },
+              { key: 'tanggal_bergabung', label: 'Tanggal Bergabung' },
+            ]}
+            pdfTitle="DAFTAR ANGGOTA KOPERASI"
+          />
           {/* ✅ Hanya admin yang bisa tambah anggota */}
           {canEdit && (
             <button
