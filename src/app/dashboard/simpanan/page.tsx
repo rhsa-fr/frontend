@@ -10,6 +10,7 @@ import {
 import { api } from '@/lib/axios'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
+import Skeleton from '@/components/ui/Skeleton'
 
 // ============================================================================
 // Types
@@ -783,10 +784,28 @@ export default function SimpananPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} className="text-center py-16">
-                <Loader2 className="w-6 h-6 animate-spin text-ink-300 mx-auto mb-2" />
-                <p className="text-xs text-ink-300">Memuat data...</p>
-              </td></tr>
+              Array(LIMIT).fill(0).map((_, i) => (
+                <tr key={i} className="border-b border-surface-100">
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <Skeleton className="w-8 h-8 rounded-lg" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      <Skeleton className="w-7 h-7 rounded-lg" />
+                      <Skeleton className="w-7 h-7 rounded-lg" />
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : data.length === 0 ? (
               <tr><td colSpan={8} className="text-center py-16">
                 <PiggyBank className="w-8 h-8 text-ink-200 mx-auto mb-2" />

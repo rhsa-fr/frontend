@@ -12,6 +12,8 @@ import { useAuth } from '@/context/AuthContext'
 import ModalVerifikasi from './ModalVerifikasi'
 import FormPinjaman from './FormPinjaman'
 import { Pinjaman, formatRupiah } from './types'
+import Toast, { ToastData } from '@/components/ui/Toast'
+import Skeleton from '@/components/ui/Skeleton'
 
 // ============================================================================
 // Types lokal (untuk PaginatedResponse)
@@ -63,6 +65,7 @@ export default function PinjamanPage() {
   // Modal states
   const [showFormPinjaman, setShowFormPinjaman] = useState(false)
   const [selectedPinjaman, setSelectedPinjaman] = useState<Pinjaman | null>(null)
+  const [toast, setToast] = useState<ToastData | null>(null)
 
   // ✅ Role-based permissions
   const { user } = useAuth()
@@ -113,6 +116,8 @@ export default function PinjamanPage() {
   const handleVerifikasiSuccess = (updated: Pinjaman) => {
     setData(prev => prev.map(p => p.id_pinjaman === updated.id_pinjaman ? updated : p))
     setSelectedPinjaman(null)
+    const statusLabel = updated.status === 'disetujui' ? 'disetujui' : 'ditolak'
+    setToast({ type: updated.status === 'disetujui' ? 'success' : 'error', message: `Pinjaman ${updated.no_pinjaman} berhasil ${statusLabel}` })
     fetchData() // refresh counts
   }
 
@@ -133,6 +138,7 @@ export default function PinjamanPage() {
 
   return (
     <div className="space-y-4">
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       {/* ── Toolbar ── */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -153,7 +159,7 @@ export default function PinjamanPage() {
               className="h-8 px-3 rounded-lg text-xs font-semibold text-white flex items-center gap-1.5 hover:opacity-90 transition-all"
               style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
             >
-              <Plus className="w-3.5 h-3.5" /> Pengajuan Baru
+              <Plus className="w-3.5 h-3.5" /> Ajukan Pinjaman
             </button>
           )}
         </div>
@@ -228,12 +234,25 @@ export default function PinjamanPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={canVerifikasi ? 7 : 6} className="text-center py-16">
-                  <Loader2 className="w-6 h-6 animate-spin text-ink-300 mx-auto mb-2" />
-                  <p className="text-xs text-ink-300">Memuat data...</p>
-                </td>
-              </tr>
+              Array(LIMIT).fill(0).map((_, i) => (
+                <tr key={i} className="border-b border-surface-100">
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <Skeleton className="w-8 h-8 rounded-lg" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-24 mb-1" />
+                    <Skeleton className="h-2 w-16" />
+                  </td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                  {canVerifikasi && <td className="px-4 py-3"><Skeleton className="h-8 w-20 rounded-xl" /></td>}
+                </tr>
+              ))
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={canVerifikasi ? 7 : 6} className="text-center py-16">
@@ -351,7 +370,11 @@ export default function PinjamanPage() {
       {showFormPinjaman && (
         <FormPinjaman
           onClose={() => setShowFormPinjaman(false)}
-          onSuccess={() => { setShowFormPinjaman(false); fetchData() }}
+          onSuccess={(result) => {
+            setShowFormPinjaman(false)
+            setToast({ type: 'success', message: `Pengajuan pinjaman ${result.no_pinjaman} berhasil diajukan` })
+            fetchData()
+          }}
         />
       )}
 

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/axios'
+import Toast, { ToastData } from '@/components/ui/Toast'
+import Skeleton from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface JenisSimpanan {
@@ -32,17 +34,6 @@ const EMPTY_FORM = {
   nominal_tetap: 0,
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function Toast({ type, msg, onClose }: { type: 'success' | 'error'; msg: string; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t) }, [onClose])
-  return (
-    <div className={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-white animate-fade-in
-      ${type === 'success' ? 'bg-emerald-600' : 'bg-red-500'}`}>
-      {type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <XCircle className="w-5 h-5 shrink-0" />}
-      <p className="text-sm font-semibold">{msg}</p>
-    </div>
-  )
-}
 
 // ── Konfirmasi Dialog ─────────────────────────────────────────────────────────
 function ConfirmDialog({
@@ -307,7 +298,8 @@ function ModalForm({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white bg-ink-800 hover:bg-ink-700 disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             {loading ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Tambah Jenis'}
@@ -325,7 +317,7 @@ export default function JenisSimpananPage() {
 
   const [list, setList]       = useState<JenisSimpanan[]>([])
   const [loading, setLoading] = useState(true)
-  const [toast, setToast]     = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+  const [toast, setToast]     = useState<ToastData | null>(null)
 
   // Modal states
   const [showForm, setShowForm]       = useState(false)
@@ -334,7 +326,7 @@ export default function JenisSimpananPage() {
   const [confirmToggle, setConfirmToggle] = useState<JenisSimpanan | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
-  const showToast = (type: 'success' | 'error', msg: string) => setToast({ type, msg })
+  const showToast = (type: 'success' | 'error', msg: string) => setToast({ type, message: msg })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -386,7 +378,7 @@ export default function JenisSimpananPage() {
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Toast */}
-      {toast && <Toast type={toast.type} msg={toast.msg} onClose={() => setToast(null)} />}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       {/* Modals */}
       {(showForm || editTarget) && (
@@ -436,7 +428,8 @@ export default function JenisSimpananPage() {
         {isAdmin && (
           <button
             onClick={() => { setEditTarget(null); setShowForm(true) }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-ink-800 text-white text-sm font-semibold hover:bg-ink-700 transition-colors shrink-0"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold shrink-0 transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
           >
             <Plus className="w-4 h-4" /> Tambah Jenis
           </button>
@@ -487,8 +480,41 @@ export default function JenisSimpananPage() {
 
         {/* Loading */}
         {loading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin text-ink-300" />
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-surface-50 border-b border-surface-100">
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Kode</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Nama Simpanan</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Keterangan</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Nominal</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Tipe</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Status</th>
+                  {isAdmin && <th className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide">Aksi</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-50">
+                {Array(5).fill(0).map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-5 py-3.5"><Skeleton className="h-6 w-16 rounded-lg" /></td>
+                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-32" /></td>
+                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-48" /></td>
+                    <td className="px-4 py-3.5"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-4 py-3.5"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="px-4 py-3.5"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    {isAdmin && (
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <Skeleton className="w-7 h-7 rounded-lg" />
+                          <Skeleton className="w-7 h-7 rounded-lg" />
+                          <Skeleton className="w-7 h-7 rounded-lg" />
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 

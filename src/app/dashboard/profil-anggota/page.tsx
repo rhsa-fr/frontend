@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/axios'
+import Toast, { ToastData } from '@/components/ui/Toast'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type StatusAnggota = 'aktif' | 'non-aktif' | 'keluar'
@@ -129,18 +130,6 @@ const PEKERJAAN_LIST = [
   'Petani','Nelayan','Buruh','Guru / Dosen','Tenaga Kesehatan','Pedagang',
   'Ibu Rumah Tangga','Pelajar / Mahasiswa','Pensiunan','Lainnya',
 ]
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function Toast({ type, msg, onClose }: { type: 'success' | 'error'; msg: string; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t) }, [onClose])
-  return (
-    <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl animate-fade-in text-white
-      ${type === 'success' ? 'bg-emerald-600' : 'bg-red-500'}`}>
-      {type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-      <p className="text-sm font-semibold">{msg}</p>
-    </div>
-  )
-}
 
 // ── Selector Anggota ──────────────────────────────────────────────────────────
 function AnggotaSelector({ selected, onSelect }: {
@@ -416,7 +405,8 @@ function ModalUpdateProfil({ anggota, onClose, onSuccess }: {
               Batal
             </button>
             <button onClick={handleSubmit} disabled={loading}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-ink-800 text-white text-sm font-semibold hover:bg-ink-700 transition-colors disabled:opacity-60">
+              className="flex items-center gap-2 px-5 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
+              style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit3 className="w-4 h-4" />}
               {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
@@ -598,7 +588,7 @@ export default function ProfilAnggotaPage() {
   const [loading, setLoading]     = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'simpanan' | 'pinjaman'>('simpanan')
-  const [toast, setToast]         = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+  const [toast, setToast]         = useState<ToastData | null>(null)
 
   const loadDetail = useCallback(async (idAnggota: number) => {
     setLoading(true)
@@ -606,14 +596,14 @@ export default function ProfilAnggotaPage() {
       const detail = await api.get<AnggotaDetail>(`/anggota/${idAnggota}/detail`)
       setAnggota(detail)
     } catch (e: unknown) {
-      setToast({ type: 'error', msg: e instanceof Error ? e.message : 'Gagal memuat detail' })
+      setToast({ type: 'error', message: e instanceof Error ? e.message : 'Gagal memuat detail' })
     } finally { setLoading(false) }
   }, [])
 
   const handleSelect    = (a: AnggotaDetail) => loadDetail(a.id_anggota)
   const handleProfilSaved = async () => {
     setShowModal(false)
-    setToast({ type: 'success', msg: 'Profil berhasil diperbarui' })
+    setToast({ type: 'success', message: 'Profil anggota berhasil diperbarui' })
     if (anggota) await loadDetail(anggota.id_anggota)
   }
 
@@ -638,7 +628,7 @@ export default function ProfilAnggotaPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {toast && <Toast type={toast.type} msg={toast.msg} onClose={() => setToast(null)} />}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       {showModal && anggota && (
         <ModalUpdateProfil anggota={anggota} onClose={() => setShowModal(false)} onSuccess={handleProfilSaved} />
       )}
@@ -651,7 +641,8 @@ export default function ProfilAnggotaPage() {
         </div>
         {anggota && canEdit && (
           <button onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-ink-800 text-white text-sm font-semibold hover:bg-ink-700 transition-colors shrink-0">
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold shrink-0 transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}>
             <Edit3 className="w-4 h-4" /> Update Profil
           </button>
         )}

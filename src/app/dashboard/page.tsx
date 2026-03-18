@@ -13,6 +13,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/axios'
 
@@ -122,7 +123,7 @@ function StatCard({
       <div>
         <p className="text-[11px] text-ink-300 font-medium uppercase tracking-wide">{label}</p>
         {loading
-          ? <div className="h-6 w-24 bg-surface-200 rounded animate-pulse mt-1" />
+          ? <Skeleton className="h-6 w-24 mt-1" />
           : <p className="text-xl font-semibold text-ink-800 mt-0.5">{value}</p>
         }
         {sub && !loading && <p className="text-[11px] text-ink-300 mt-0.5">{sub}</p>}
@@ -146,7 +147,7 @@ function AlertRow({ icon: Icon, color, label, count, loading, href, router }: {
         <p className="text-xs text-ink-600 text-left">{label}</p>
       </div>
       {loading
-        ? <div className="w-6 h-4 bg-surface-300 rounded animate-pulse" />
+        ? <Skeleton className="w-6 h-4 shadow-sm" />
         : <span className="text-xs font-bold text-ink-800 bg-white rounded-lg px-2 py-0.5 shadow-sm">{count}</span>
       }
     </button>
@@ -350,11 +351,11 @@ export default function DashboardPage() {
         {loading
           ? Array(4).fill(0).map((_, i) => (
               <div key={i} className="stat-card">
-                <div className="w-9 h-9 rounded-xl bg-surface-200 animate-pulse" />
+                <Skeleton className="w-9 h-9 rounded-xl" />
                 <div className="space-y-1.5 mt-2">
-                  <div className="h-3 w-20 bg-surface-200 rounded animate-pulse" />
-                  <div className="h-6 w-28 bg-surface-200 rounded animate-pulse" />
-                  <div className="h-3 w-32 bg-surface-200 rounded animate-pulse" />
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-6 w-28" />
+                  <Skeleton className="h-3 w-32" />
                 </div>
               </div>
             ))
@@ -416,7 +417,7 @@ export default function DashboardPage() {
 
         {/* Chart body */}
         {loading ? (
-          <div className="h-56 bg-surface-100 rounded-xl animate-pulse" />
+          <Skeleton className="h-56 rounded-xl" />
         ) : !hasChartData ? (
           <div className="h-56 flex flex-col items-center justify-center text-center">
             <TrendingUp className="w-8 h-8 text-ink-200 mb-2" />
@@ -482,7 +483,7 @@ export default function DashboardPage() {
             </div>
             {loading ? (
               <div className="space-y-2">
-                {Array(4).fill(0).map((_, i) => <div key={i} className="h-10 bg-surface-100 rounded-xl animate-pulse" />)}
+                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}
               </div>
             ) : recentSimpanan.length === 0 ? (
               <p className="text-xs text-ink-300 text-center py-6">Belum ada transaksi simpanan</p>
@@ -519,7 +520,7 @@ export default function DashboardPage() {
             </div>
             {loading ? (
               <div className="space-y-2">
-                {Array(4).fill(0).map((_, i) => <div key={i} className="h-10 bg-surface-100 rounded-xl animate-pulse" />)}
+                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}
               </div>
             ) : recentPinjaman.length === 0 ? (
               <p className="text-xs text-ink-300 text-center py-6">Belum ada pinjaman</p>
@@ -565,7 +566,7 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold text-ink-800 mb-3">Perlu Perhatian</h2>
             <div className="space-y-2">
               {loading
-                ? Array(4).fill(0).map((_, i) => <div key={i} className="h-10 bg-surface-100 rounded-xl animate-pulse" />)
+                ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)
                 : alertItems.map(item => (
                     <AlertRow key={item.label} {...item} loading={false} router={router} />
                   ))
@@ -584,7 +585,7 @@ export default function DashboardPage() {
             </div>
             {loading ? (
               <div className="space-y-2">
-                {Array(3).fill(0).map((_, i) => <div key={i} className="h-14 bg-surface-100 rounded-xl animate-pulse" />)}
+                {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
               </div>
             ) : jatuhTempo.length === 0 ? (
               <div className="flex flex-col items-center py-6 text-center">

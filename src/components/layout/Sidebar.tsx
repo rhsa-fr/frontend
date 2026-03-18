@@ -101,7 +101,13 @@ export default function Sidebar() {
   const grouped = SECTIONS.map((section) => ({
     section,
     label: SECTION_LABELS[section],
-    items: NAV_ITEMS.filter((item) => item.section === section),
+    items: NAV_ITEMS.filter((item) => {
+      // Hide settings for non-admin users
+      if (item.label === 'Pengaturan' && user?.role !== 'admin') {
+        return false
+      }
+      return item.section === section
+    }),
   }))
 
   return (
@@ -158,22 +164,8 @@ export default function Sidebar() {
 
         {/* ── User Info + Logout ── */}
         <div className="shrink-0 border-t border-surface-200">
-          {!collapsed && user && (
-            <div className="flex items-center gap-2.5 px-4 py-3 animate-fade-in">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }}
-              >
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-ink-800 truncate">{user.username}</p>
-                <p className="text-[10px] text-ink-300 capitalize">{ROLE_LABELS[user.role] ?? user.role}</p>
-              </div>
-            </div>
-          )}
 
-          <div className="px-2 pb-3">
+          <div className="px-2 py-3">
             <button
               onClick={() => setConfirmLogout(true)}
               disabled={loggingOut}

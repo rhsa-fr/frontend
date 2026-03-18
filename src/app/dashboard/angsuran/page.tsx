@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/axios'
+import Toast, { ToastData } from '@/components/ui/Toast'
+import Skeleton from '@/components/ui/Skeleton'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface AngsuranItem {
@@ -413,10 +415,10 @@ export default function AngsuranPage() {
 
   const [selected, setSelected]     = useState<AngsuranItem | null>(null)
   const [bukti, setBukti]           = useState<BuktiData | null>(null)
-  const [toast, setToast]           = useState<string | null>(null)
+  const [toast, setToast]           = useState<ToastData | null>(null)
 
   const showToast = (msg: string) => {
-    setToast(msg); setTimeout(() => setToast(null), 3500)
+    setToast({ type: 'success', message: msg })
   }
 
   const load = useCallback(async () => {
@@ -504,11 +506,7 @@ export default function AngsuranPage() {
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Toast */}
-      {toast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-lg text-sm font-medium animate-fade-in">
-          <BadgeCheck className="w-4 h-4" />{toast}
-        </div>
-      )}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       {/* ── Filter Bulan & Tahun ─────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-surface-200 shadow-sm p-5">
@@ -641,11 +639,32 @@ export default function AngsuranPage() {
 
             {/* Loading */}
             {loading && (
-              <div className="flex items-center justify-center py-16">
-                <div className="flex flex-col items-center gap-3">
-                  <RefreshCw className="w-6 h-6 text-accent-500 animate-spin" />
-                  <p className="text-xs text-ink-400">Memuat data angsuran {labelBulanTerpilih}…</p>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-surface-50 border-b border-surface-100">
+                      {['No. Angsuran', 'Anggota', 'Jatuh Tempo', 'Nominal', 'Denda', 'Total', 'Status', 'Aksi'].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-ink-400 uppercase tracking-wide whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-50">
+                    {Array(LIMIT).fill(0).map((_, i) => (
+                      <tr key={i}>
+                        <td className="px-4 py-3 group"><Skeleton className="h-4 w-24 mb-1" /><Skeleton className="h-2 w-12" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-4 w-32 mb-1" /><Skeleton className="h-2 w-20" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                        <td className="px-4 py-3"><Skeleton className="h-8 w-16 rounded-lg" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 

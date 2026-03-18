@@ -10,6 +10,8 @@ import { api } from '@/lib/axios'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
 import ExportButtons from '@/components/ExportButtons'
+import Toast, { ToastData } from '@/components/ui/Toast'
+import Skeleton from '@/components/ui/Skeleton'
 
 // ============================================================================
 // Types
@@ -97,7 +99,7 @@ function StatusBadge({ status }: { status: Anggota['status'] }) {
 interface ModalProps {
   open: boolean
   onClose: () => void
-  onSaved: () => void
+  onSaved: (msg: string) => void
   editData?: Anggota | null
 }
 
@@ -135,10 +137,11 @@ function AnggotaModal({ open, onClose, onSaved, editData }: ModalProps) {
       }
       if (editData) {
         await api.put(`/anggota/${editData.id_anggota}`, payload)
+        onSaved(`Data anggota "${payload.nama_lengkap}" berhasil diperbarui`)
       } else {
         await api.post('/anggota', payload)
+        onSaved(`Anggota "${payload.nama_lengkap}" berhasil ditambahkan`)
       }
-      onSaved()
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menyimpan data.')
@@ -290,6 +293,7 @@ export default function AnggotaPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<Anggota | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<ToastData | null>(null)
   const [counts, setCounts] = useState({ semua: 0, aktif: 0, 'non-aktif': 0, keluar: 0 })
 
   // ✅ Cek role — hanya admin yang bisa tambah/edit/hapus
@@ -344,11 +348,14 @@ export default function AnggotaPage() {
     if (!deleteConfirm) return
     setDeleteLoading(true)
     try {
+      const nama = deleteConfirm.nama_lengkap
       await api.delete(`/anggota/${deleteConfirm.id_anggota}`)
       setDeleteConfirm(null)
+      setToast({ type: 'success', message: `Anggota "${nama}" berhasil dihapus` })
       fetchData()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menghapus.')
+      setToast({ type: 'error', message: err instanceof Error ? err.message : 'Gagal menghapus.' })
+      setDeleteConfirm(null)
     } finally {
       setDeleteLoading(false)
     }
@@ -356,6 +363,7 @@ export default function AnggotaPage() {
 
   return (
     <div className="space-y-4">
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       {/* ── Toolbar ── */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -497,12 +505,29 @@ export default function AnggotaPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={canEdit ? 7 : 6} className="text-center py-16">
-                  <Loader2 className="w-6 h-6 animate-spin text-ink-300 mx-auto mb-2" />
-                  <p className="text-xs text-ink-300">Memuat data...</p>
-                </td>
-              </tr>
+              Array(LIMIT).fill(0).map((_, i) => (
+                <tr key={i} className="border-b border-surface-100">
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-10 h-10 rounded-xl" />
+                      <Skeleton className="h-4 w-40" />
+                    </div>
+                  </td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-48" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-32" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                  {canEdit && (
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <Skeleton className="w-7 h-7 rounded-lg" />
+                        <Skeleton className="w-7 h-7 rounded-lg" />
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={canEdit ? 7 : 6} className="text-center py-16">
@@ -615,7 +640,7 @@ export default function AnggotaPage() {
       <AnggotaModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSaved={fetchData}
+        onSaved={(msg) => { setToast({ type: 'success', message: msg }); fetchData() }}
         editData={editData}
       />
 
