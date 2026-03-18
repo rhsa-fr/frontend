@@ -401,9 +401,9 @@ export default function AngsuranPage() {
 
   // ── Filter Bulan & Tahun ─────────────────────────────────────────────────
   const nowYM = currentYM()
-  const [filterBulan, setFilterBulan]   = useState(nowYM.split('-')[1])   // '03'
-  const [filterTahun, setFilterTahun]   = useState(nowYM.split('-')[0])   // '2025'
-  const [hasSearched, setHasSearched]   = useState(false)   // DATA HANYA TAMPIL SETELAH FILTER DITERAPKAN
+  const [filterBulan, setFilterBulan]   = useState(nowYM.split('-')[1])
+  const [filterTahun, setFilterTahun]   = useState(nowYM.split('-')[0])
+  const [hasSearched, setHasSearched]   = useState(true) // Load otomatis bulan ini
 
   const [list, setList]             = useState<AngsuranItem[]>([])
   const [meta, setMeta]             = useState<PaginatedMeta>({ total: 0, page: 1, total_pages: 1 })
@@ -422,7 +422,7 @@ export default function AngsuranPage() {
   }
 
   const load = useCallback(async () => {
-    if (!hasSearched) return   // ← Jangan load sebelum filter diterapkan
+    // hasSearched true by default, load awal otomatis
 
     setLoading(true)
     try {

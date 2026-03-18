@@ -78,57 +78,57 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
 
 const STATUS_ANGGOTA: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-  aktif:       { label: 'Aktif',     dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  'non-aktif': { label: 'Non-Aktif', dot: 'bg-amber-400',   bg: 'bg-amber-50',   text: 'text-amber-700'  },
-  keluar:      { label: 'Keluar',    dot: 'bg-red-400',     bg: 'bg-red-50',     text: 'text-red-600'    },
+  aktif: { label: 'Aktif', dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  'non-aktif': { label: 'Non-Aktif', dot: 'bg-amber-400', bg: 'bg-amber-50', text: 'text-amber-700' },
+  keluar: { label: 'Keluar', dot: 'bg-red-400', bg: 'bg-red-50', text: 'text-red-600' },
 }
 
 // ── Data Wilayah Indonesia ────────────────────────────────────────────────────
 const WILAYAH: Record<string, { kota: string; kodePos: string }[]> = {
-  'Aceh':               [{ kota:'Banda Aceh', kodePos:'23111' },{ kota:'Sabang', kodePos:'23511' },{ kota:'Langsa', kodePos:'24411' },{ kota:'Lhokseumawe', kodePos:'24311' },{ kota:'Subulussalam', kodePos:'24882' }],
-  'Sumatera Utara':     [{ kota:'Medan', kodePos:'20111' },{ kota:'Binjai', kodePos:'20711' },{ kota:'Tebing Tinggi', kodePos:'20611' },{ kota:'Pematangsiantar', kodePos:'21111' },{ kota:'Sibolga', kodePos:'22511' },{ kota:'Tanjungbalai', kodePos:'21311' },{ kota:'Padangsidimpuan', kodePos:'22711' },{ kota:'Gunungsitoli', kodePos:'22811' }],
-  'Sumatera Barat':     [{ kota:'Padang', kodePos:'25111' },{ kota:'Bukittinggi', kodePos:'26111' },{ kota:'Payakumbuh', kodePos:'26211' },{ kota:'Sawahlunto', kodePos:'27411' },{ kota:'Solok', kodePos:'27311' },{ kota:'Padangpanjang', kodePos:'27111' },{ kota:'Pariaman', kodePos:'25511' }],
-  'Riau':               [{ kota:'Pekanbaru', kodePos:'28111' },{ kota:'Dumai', kodePos:'28811' }],
-  'Kepulauan Riau':     [{ kota:'Tanjungpinang', kodePos:'29111' },{ kota:'Batam', kodePos:'29411' }],
-  'Jambi':              [{ kota:'Jambi', kodePos:'36111' },{ kota:'Sungai Penuh', kodePos:'37111' }],
-  'Sumatera Selatan':   [{ kota:'Palembang', kodePos:'30111' },{ kota:'Prabumulih', kodePos:'31111' },{ kota:'Pagar Alam', kodePos:'31511' },{ kota:'Lubuklinggau', kodePos:'31611' }],
-  'Bangka Belitung':    [{ kota:'Pangkalpinang', kodePos:'33111' }],
-  'Bengkulu':           [{ kota:'Bengkulu', kodePos:'38111' }],
-  'Lampung':            [{ kota:'Bandar Lampung', kodePos:'35111' },{ kota:'Metro', kodePos:'34111' }],
-  'DKI Jakarta':        [{ kota:'Jakarta Pusat', kodePos:'10110' },{ kota:'Jakarta Utara', kodePos:'14110' },{ kota:'Jakarta Barat', kodePos:'11110' },{ kota:'Jakarta Selatan', kodePos:'12110' },{ kota:'Jakarta Timur', kodePos:'13110' }],
-  'Jawa Barat':         [{ kota:'Bandung', kodePos:'40111' },{ kota:'Bogor', kodePos:'16111' },{ kota:'Bekasi', kodePos:'17111' },{ kota:'Depok', kodePos:'16411' },{ kota:'Cimahi', kodePos:'40511' },{ kota:'Cirebon', kodePos:'45111' },{ kota:'Sukabumi', kodePos:'43111' },{ kota:'Tasikmalaya', kodePos:'46111' },{ kota:'Banjar', kodePos:'46311' }],
-  'Banten':             [{ kota:'Serang', kodePos:'42111' },{ kota:'Tangerang', kodePos:'15111' },{ kota:'Tangerang Selatan', kodePos:'15311' },{ kota:'Cilegon', kodePos:'42411' }],
-  'Jawa Tengah':        [{ kota:'Semarang', kodePos:'50111' },{ kota:'Solo', kodePos:'57111' },{ kota:'Magelang', kodePos:'56111' },{ kota:'Salatiga', kodePos:'50711' },{ kota:'Pekalongan', kodePos:'51111' },{ kota:'Tegal', kodePos:'52111' },{ kota:'Purwokerto', kodePos:'53111' }],
-  'DI Yogyakarta':      [{ kota:'Yogyakarta', kodePos:'55111' }],
-  'Jawa Timur':         [{ kota:'Surabaya', kodePos:'60111' },{ kota:'Malang', kodePos:'65111' },{ kota:'Madiun', kodePos:'63111' },{ kota:'Kediri', kodePos:'64111' },{ kota:'Blitar', kodePos:'66111' },{ kota:'Mojokerto', kodePos:'61311' },{ kota:'Pasuruan', kodePos:'67111' },{ kota:'Probolinggo', kodePos:'67211' },{ kota:'Batu', kodePos:'65311' }],
-  'Bali':               [{ kota:'Denpasar', kodePos:'80111' }],
-  'Nusa Tenggara Barat':[{ kota:'Mataram', kodePos:'83111' },{ kota:'Bima', kodePos:'84111' }],
-  'Nusa Tenggara Timur':[{ kota:'Kupang', kodePos:'85111' }],
-  'Kalimantan Barat':   [{ kota:'Pontianak', kodePos:'78111' },{ kota:'Singkawang', kodePos:'79111' }],
-  'Kalimantan Tengah':  [{ kota:'Palangkaraya', kodePos:'73111' }],
-  'Kalimantan Selatan': [{ kota:'Banjarmasin', kodePos:'70111' },{ kota:'Banjarbaru', kodePos:'70711' }],
-  'Kalimantan Timur':   [{ kota:'Samarinda', kodePos:'75111' },{ kota:'Balikpapan', kodePos:'76111' },{ kota:'Bontang', kodePos:'75311' }],
-  'Kalimantan Utara':   [{ kota:'Tarakan', kodePos:'77111' }],
-  'Sulawesi Utara':     [{ kota:'Manado', kodePos:'95111' },{ kota:'Bitung', kodePos:'95511' },{ kota:'Tomohon', kodePos:'95411' },{ kota:'Kotamobagu', kodePos:'95711' }],
-  'Gorontalo':          [{ kota:'Gorontalo', kodePos:'96111' }],
-  'Sulawesi Tengah':    [{ kota:'Palu', kodePos:'94111' }],
-  'Sulawesi Barat':     [{ kota:'Mamuju', kodePos:'91511' }],
-  'Sulawesi Selatan':   [{ kota:'Makassar', kodePos:'90111' },{ kota:'Parepare', kodePos:'91111' },{ kota:'Palopo', kodePos:'91911' }],
-  'Sulawesi Tenggara':  [{ kota:'Kendari', kodePos:'93111' },{ kota:'Baubau', kodePos:'93711' }],
-  'Maluku':             [{ kota:'Ambon', kodePos:'97211' },{ kota:'Tual', kodePos:'97611' }],
-  'Maluku Utara':       [{ kota:'Sofifi', kodePos:'97791' },{ kota:'Ternate', kodePos:'97711' }],
-  'Papua':              [{ kota:'Jayapura', kodePos:'99111' }],
-  'Papua Barat':        [{ kota:'Manokwari', kodePos:'98311' },{ kota:'Sorong', kodePos:'98411' }],
-  'Papua Selatan':      [{ kota:'Merauke', kodePos:'99611' }],
-  'Papua Tengah':       [{ kota:'Nabire', kodePos:'98811' }],
-  'Papua Pegunungan':   [{ kota:'Wamena', kodePos:'99511' }],
+  'Aceh': [{ kota: 'Banda Aceh', kodePos: '23111' }, { kota: 'Sabang', kodePos: '23511' }, { kota: 'Langsa', kodePos: '24411' }, { kota: 'Lhokseumawe', kodePos: '24311' }, { kota: 'Subulussalam', kodePos: '24882' }],
+  'Sumatera Utara': [{ kota: 'Medan', kodePos: '20111' }, { kota: 'Binjai', kodePos: '20711' }, { kota: 'Tebing Tinggi', kodePos: '20611' }, { kota: 'Pematangsiantar', kodePos: '21111' }, { kota: 'Sibolga', kodePos: '22511' }, { kota: 'Tanjungbalai', kodePos: '21311' }, { kota: 'Padangsidimpuan', kodePos: '22711' }, { kota: 'Gunungsitoli', kodePos: '22811' }],
+  'Sumatera Barat': [{ kota: 'Padang', kodePos: '25111' }, { kota: 'Bukittinggi', kodePos: '26111' }, { kota: 'Payakumbuh', kodePos: '26211' }, { kota: 'Sawahlunto', kodePos: '27411' }, { kota: 'Solok', kodePos: '27311' }, { kota: 'Padangpanjang', kodePos: '27111' }, { kota: 'Pariaman', kodePos: '25511' }],
+  'Riau': [{ kota: 'Pekanbaru', kodePos: '28111' }, { kota: 'Dumai', kodePos: '28811' }],
+  'Kepulauan Riau': [{ kota: 'Tanjungpinang', kodePos: '29111' }, { kota: 'Batam', kodePos: '29411' }],
+  'Jambi': [{ kota: 'Jambi', kodePos: '36111' }, { kota: 'Sungai Penuh', kodePos: '37111' }],
+  'Sumatera Selatan': [{ kota: 'Palembang', kodePos: '30111' }, { kota: 'Prabumulih', kodePos: '31111' }, { kota: 'Pagar Alam', kodePos: '31511' }, { kota: 'Lubuklinggau', kodePos: '31611' }],
+  'Bangka Belitung': [{ kota: 'Pangkalpinang', kodePos: '33111' }],
+  'Bengkulu': [{ kota: 'Bengkulu', kodePos: '38111' }],
+  'Lampung': [{ kota: 'Bandar Lampung', kodePos: '35111' }, { kota: 'Metro', kodePos: '34111' }],
+  'DKI Jakarta': [{ kota: 'Jakarta Pusat', kodePos: '10110' }, { kota: 'Jakarta Utara', kodePos: '14110' }, { kota: 'Jakarta Barat', kodePos: '11110' }, { kota: 'Jakarta Selatan', kodePos: '12110' }, { kota: 'Jakarta Timur', kodePos: '13110' }],
+  'Jawa Barat': [{ kota: 'Bandung', kodePos: '40111' }, { kota: 'Bogor', kodePos: '16111' }, { kota: 'Bekasi', kodePos: '17111' }, { kota: 'Depok', kodePos: '16411' }, { kota: 'Cimahi', kodePos: '40511' }, { kota: 'Cirebon', kodePos: '45111' }, { kota: 'Sukabumi', kodePos: '43111' }, { kota: 'Tasikmalaya', kodePos: '46111' }, { kota: 'Banjar', kodePos: '46311' }],
+  'Banten': [{ kota: 'Serang', kodePos: '42111' }, { kota: 'Tangerang', kodePos: '15111' }, { kota: 'Tangerang Selatan', kodePos: '15311' }, { kota: 'Cilegon', kodePos: '42411' }],
+  'Jawa Tengah': [{ kota: 'Semarang', kodePos: '50111' }, { kota: 'Solo', kodePos: '57111' }, { kota: 'Magelang', kodePos: '56111' }, { kota: 'Salatiga', kodePos: '50711' }, { kota: 'Pekalongan', kodePos: '51111' }, { kota: 'Tegal', kodePos: '52111' }, { kota: 'Purwokerto', kodePos: '53111' }],
+  'DI Yogyakarta': [{ kota: 'Yogyakarta', kodePos: '55111' }],
+  'Jawa Timur': [{ kota: 'Surabaya', kodePos: '60111' }, { kota: 'Malang', kodePos: '65111' }, { kota: 'Madiun', kodePos: '63111' }, { kota: 'Kediri', kodePos: '64111' }, { kota: 'Blitar', kodePos: '66111' }, { kota: 'Mojokerto', kodePos: '61311' }, { kota: 'Pasuruan', kodePos: '67111' }, { kota: 'Probolinggo', kodePos: '67211' }, { kota: 'Batu', kodePos: '65311' }],
+  'Bali': [{ kota: 'Denpasar', kodePos: '80111' }],
+  'Nusa Tenggara Barat': [{ kota: 'Mataram', kodePos: '83111' }, { kota: 'Bima', kodePos: '84111' }],
+  'Nusa Tenggara Timur': [{ kota: 'Kupang', kodePos: '85111' }],
+  'Kalimantan Barat': [{ kota: 'Pontianak', kodePos: '78111' }, { kota: 'Singkawang', kodePos: '79111' }],
+  'Kalimantan Tengah': [{ kota: 'Palangkaraya', kodePos: '73111' }],
+  'Kalimantan Selatan': [{ kota: 'Banjarmasin', kodePos: '70111' }, { kota: 'Banjarbaru', kodePos: '70711' }],
+  'Kalimantan Timur': [{ kota: 'Samarinda', kodePos: '75111' }, { kota: 'Balikpapan', kodePos: '76111' }, { kota: 'Bontang', kodePos: '75311' }],
+  'Kalimantan Utara': [{ kota: 'Tarakan', kodePos: '77111' }],
+  'Sulawesi Utara': [{ kota: 'Manado', kodePos: '95111' }, { kota: 'Bitung', kodePos: '95511' }, { kota: 'Tomohon', kodePos: '95411' }, { kota: 'Kotamobagu', kodePos: '95711' }],
+  'Gorontalo': [{ kota: 'Gorontalo', kodePos: '96111' }],
+  'Sulawesi Tengah': [{ kota: 'Palu', kodePos: '94111' }],
+  'Sulawesi Barat': [{ kota: 'Mamuju', kodePos: '91511' }],
+  'Sulawesi Selatan': [{ kota: 'Makassar', kodePos: '90111' }, { kota: 'Parepare', kodePos: '91111' }, { kota: 'Palopo', kodePos: '91911' }],
+  'Sulawesi Tenggara': [{ kota: 'Kendari', kodePos: '93111' }, { kota: 'Baubau', kodePos: '93711' }],
+  'Maluku': [{ kota: 'Ambon', kodePos: '97211' }, { kota: 'Tual', kodePos: '97611' }],
+  'Maluku Utara': [{ kota: 'Sofifi', kodePos: '97791' }, { kota: 'Ternate', kodePos: '97711' }],
+  'Papua': [{ kota: 'Jayapura', kodePos: '99111' }],
+  'Papua Barat': [{ kota: 'Manokwari', kodePos: '98311' }, { kota: 'Sorong', kodePos: '98411' }],
+  'Papua Selatan': [{ kota: 'Merauke', kodePos: '99611' }],
+  'Papua Tengah': [{ kota: 'Nabire', kodePos: '98811' }],
+  'Papua Pegunungan': [{ kota: 'Wamena', kodePos: '99511' }],
 }
 const PROVINSI_LIST = Object.keys(WILAYAH).sort()
 
 const PEKERJAAN_LIST = [
-  'PNS / ASN','TNI / Polri','Pegawai BUMN','Pegawai Swasta','Wiraswasta / Pengusaha',
-  'Petani','Nelayan','Buruh','Guru / Dosen','Tenaga Kesehatan','Pedagang',
-  'Ibu Rumah Tangga','Pelajar / Mahasiswa','Pensiunan','Lainnya',
+  'PNS / ASN', 'TNI / Polri', 'Pegawai BUMN', 'Pegawai Swasta', 'Wiraswasta / Pengusaha',
+  'Petani', 'Nelayan', 'Buruh', 'Guru / Dosen', 'Tenaga Kesehatan', 'Pedagang',
+  'Ibu Rumah Tangga', 'Pelajar / Mahasiswa', 'Pensiunan', 'Lainnya',
 ]
 
 // ── Selector Anggota ──────────────────────────────────────────────────────────
@@ -136,9 +136,9 @@ function AnggotaSelector({ selected, onSelect }: {
   selected: AnggotaDetail | null
   onSelect: (a: AnggotaDetail) => void
 }) {
-  const [query, setQuery]     = useState('')
+  const [query, setQuery] = useState('')
   const [results, setResults] = useState<AnggotaDetail[]>([])
-  const [show, setShow]       = useState(false)
+  const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -179,11 +179,11 @@ function AnggotaSelector({ selected, onSelect }: {
               <button key={a.id_anggota} type="button"
                 onClick={() => { onSelect(a); setQuery(''); setShow(false); setResults([]) }}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-50 text-left transition-colors border-b border-surface-100 last:border-0">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }} >
-                    <User className="w-5 h-5 text-white" />
-                  </div>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #1a2f4a, #2a7fc5)' }} >
+                  <User className="w-5 h-5 text-white" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-ink-800 truncate">{a.nama_lengkap}</p>
                   <p className="text-[11px] text-ink-300 font-mono">{a.no_anggota}</p>
@@ -209,18 +209,18 @@ function ModalUpdateProfil({ anggota, onClose, onSuccess }: {
 }) {
   const profil = anggota.profil
   const [form, setForm] = useState({
-    nik:           profil?.nik           ?? '',
-    tempat_lahir:  profil?.tempat_lahir  ?? '',
+    nik: profil?.nik ?? '',
+    tempat_lahir: profil?.tempat_lahir ?? '',
     tanggal_lahir: profil?.tanggal_lahir ?? '',
     jenis_kelamin: (profil?.jenis_kelamin ?? '') as 'L' | 'P' | '',
-    alamat:        profil?.alamat        ?? '',
-    provinsi:      profil?.provinsi      ?? '',
-    kota:          profil?.kota          ?? '',
-    kode_pos:      profil?.kode_pos      ?? '',
-    pekerjaan:     profil?.pekerjaan     ?? '',
+    alamat: profil?.alamat ?? '',
+    provinsi: profil?.provinsi ?? '',
+    kota: profil?.kota ?? '',
+    kode_pos: profil?.kode_pos ?? '',
+    pekerjaan: profil?.pekerjaan ?? '',
   })
   const [loading, setLoading] = useState(false)
-  const [err, setErr]         = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
 
   const kotaList = form.provinsi ? (WILAYAH[form.provinsi] ?? []) : []
 
@@ -234,7 +234,7 @@ function ModalUpdateProfil({ anggota, onClose, onSuccess }: {
     setForm(f => ({
       ...f,
       provinsi: prov,
-      kota:     defaultKota?.kota    ?? '',
+      kota: defaultKota?.kota ?? '',
       kode_pos: defaultKota?.kodePos ?? '',
     }))
   }
@@ -244,7 +244,7 @@ function ModalUpdateProfil({ anggota, onClose, onSuccess }: {
     const found = kotaList.find(k => k.kota === kotaNama)
     setForm(f => ({
       ...f,
-      kota:     kotaNama,
+      kota: kotaNama,
       kode_pos: found?.kodePos ?? f.kode_pos,
     }))
   }
@@ -253,16 +253,16 @@ function ModalUpdateProfil({ anggota, onClose, onSuccess }: {
     setErr(null); setLoading(true)
     try {
       const payload = {
-        id_anggota:    anggota.id_anggota,
-        nik:           form.nik           || null,
-        tempat_lahir:  form.tempat_lahir  || null,
+        id_anggota: anggota.id_anggota,
+        nik: form.nik || null,
+        tempat_lahir: form.tempat_lahir || null,
         tanggal_lahir: form.tanggal_lahir || null,
         jenis_kelamin: (form.jenis_kelamin as 'L' | 'P') || null,
-        alamat:        form.alamat        || null,
-        provinsi:      form.provinsi      || null,
-        kota:          form.kota          || null,
-        kode_pos:      form.kode_pos      || null,
-        pekerjaan:     form.pekerjaan     || null,
+        alamat: form.alamat || null,
+        provinsi: form.provinsi || null,
+        kota: form.kota || null,
+        kode_pos: form.kode_pos || null,
+        pekerjaan: form.pekerjaan || null,
       }
       await api.post(`/anggota/${anggota.id_anggota}/profil`, payload)
       onSuccess()
@@ -419,12 +419,12 @@ function ModalUpdateProfil({ anggota, onClose, onSuccess }: {
 
 // ── Tab Simpanan ──────────────────────────────────────────────────────────────
 function TabSimpanan({ idAnggota }: { idAnggota: number }) {
-  const [list, setList]             = useState<Transaksi[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState<string | null>(null)
-  const [page, setPage]             = useState(1)
+  const [list, setList] = useState<Transaksi[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal]           = useState(0)
+  const [total, setTotal] = useState(0)
   const LIMIT = 8
 
   const fetchData = useCallback(async () => {
@@ -444,7 +444,7 @@ function TabSimpanan({ idAnggota }: { idAnggota: number }) {
   useEffect(() => { fetchData() }, [fetchData])
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-ink-300" /></div>
-  if (error)   return <div className="flex items-center gap-2.5 p-4 m-4 rounded-xl bg-red-50 border border-red-200"><AlertCircle className="w-4 h-4 text-red-500 shrink-0" /><p className="text-xs text-red-700">{error}</p></div>
+  if (error) return <div className="flex items-center gap-2.5 p-4 m-4 rounded-xl bg-red-50 border border-red-200"><AlertCircle className="w-4 h-4 text-red-500 shrink-0" /><p className="text-xs text-red-700">{error}</p></div>
   if (!list.length) return <p className="text-center text-sm text-ink-300 py-16">Belum ada transaksi simpanan</p>
 
   return (
@@ -453,7 +453,7 @@ function TabSimpanan({ idAnggota }: { idAnggota: number }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-200">
-              {['No. Transaksi','Jenis','Tipe','Nominal','Saldo Akhir','Tanggal','Keterangan'].map(h => (
+              {['No. Transaksi', 'Jenis', 'Tipe', 'Nominal', 'Saldo Akhir', 'Tanggal', 'Keterangan'].map(h => (
                 <th key={h} className="text-left text-[11px] font-semibold text-ink-300 uppercase tracking-wider px-4 pb-2.5">{h}</th>
               ))}
             </tr>
@@ -496,19 +496,19 @@ function TabSimpanan({ idAnggota }: { idAnggota: number }) {
 
 // ── Tab Pinjaman ──────────────────────────────────────────────────────────────
 const PINJAMAN_STATUS: Record<string, { label: string; bg: string; text: string; Icon: React.ElementType }> = {
-  pending:   { label: 'Menunggu',  bg: 'bg-amber-50',   text: 'text-amber-700',   Icon: Clock       },
-  disetujui: { label: 'Disetujui', bg: 'bg-blue-50',    text: 'text-blue-700',    Icon: CheckCircle },
-  ditolak:   { label: 'Ditolak',   bg: 'bg-red-50',     text: 'text-red-700',     Icon: XCircle     },
-  lunas:     { label: 'Lunas',     bg: 'bg-emerald-50', text: 'text-emerald-700', Icon: CreditCard  },
+  pending: { label: 'Menunggu', bg: 'bg-amber-50', text: 'text-amber-700', Icon: Clock },
+  disetujui: { label: 'Disetujui', bg: 'bg-blue-50', text: 'text-blue-700', Icon: CheckCircle },
+  ditolak: { label: 'Ditolak', bg: 'bg-red-50', text: 'text-red-700', Icon: XCircle },
+  lunas: { label: 'Lunas', bg: 'bg-emerald-50', text: 'text-emerald-700', Icon: CreditCard },
 }
 
 function TabPinjaman({ idAnggota }: { idAnggota: number }) {
-  const [list, setList]             = useState<Pinjaman[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState<string | null>(null)
-  const [page, setPage]             = useState(1)
+  const [list, setList] = useState<Pinjaman[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal]           = useState(0)
+  const [total, setTotal] = useState(0)
   const LIMIT = 8
 
   const fetchData = useCallback(async () => {
@@ -528,7 +528,7 @@ function TabPinjaman({ idAnggota }: { idAnggota: number }) {
   useEffect(() => { fetchData() }, [fetchData])
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-ink-300" /></div>
-  if (error)   return <div className="flex items-center gap-2.5 p-4 m-4 rounded-xl bg-red-50 border border-red-200"><AlertCircle className="w-4 h-4 text-red-500 shrink-0" /><p className="text-xs text-red-700">{error}</p></div>
+  if (error) return <div className="flex items-center gap-2.5 p-4 m-4 rounded-xl bg-red-50 border border-red-200"><AlertCircle className="w-4 h-4 text-red-500 shrink-0" /><p className="text-xs text-red-700">{error}</p></div>
   if (!list.length) return <p className="text-center text-sm text-ink-300 py-16">Belum ada riwayat pinjaman</p>
 
   return (
@@ -537,7 +537,7 @@ function TabPinjaman({ idAnggota }: { idAnggota: number }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-200">
-              {['No. Pinjaman','Keperluan','Nominal','Sisa','Status','Tanggal'].map(h => (
+              {['No. Pinjaman', 'Keperluan', 'Nominal', 'Sisa', 'Status', 'Tanggal'].map(h => (
                 <th key={h} className="text-left text-[11px] font-semibold text-ink-300 uppercase tracking-wider px-4 pb-2.5">{h}</th>
               ))}
             </tr>
@@ -584,11 +584,11 @@ export default function ProfilAnggotaPage() {
   const { user } = useAuth()
   const canEdit = user?.role === 'admin' || user?.role === 'bendahara'
 
-  const [anggota, setAnggota]     = useState<AnggotaDetail | null>(null)
-  const [loading, setLoading]     = useState(false)
+  const [anggota, setAnggota] = useState<AnggotaDetail | null>(null)
+  const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'simpanan' | 'pinjaman'>('simpanan')
-  const [toast, setToast]         = useState<ToastData | null>(null)
+  const [toast, setToast] = useState<ToastData | null>(null)
 
   const loadDetail = useCallback(async (idAnggota: number) => {
     setLoading(true)
@@ -600,7 +600,7 @@ export default function ProfilAnggotaPage() {
     } finally { setLoading(false) }
   }, [])
 
-  const handleSelect    = (a: AnggotaDetail) => loadDetail(a.id_anggota)
+  const handleSelect = (a: AnggotaDetail) => loadDetail(a.id_anggota)
   const handleProfilSaved = async () => {
     setShowModal(false)
     setToast({ type: 'success', message: 'Profil anggota berhasil diperbarui' })
@@ -608,22 +608,22 @@ export default function ProfilAnggotaPage() {
   }
 
   const profil = anggota?.profil
-  const sc     = anggota ? (STATUS_ANGGOTA[anggota.status] ?? STATUS_ANGGOTA['non-aktif']) : null
+  const sc = anggota ? (STATUS_ANGGOTA[anggota.status] ?? STATUS_ANGGOTA['non-aktif']) : null
 
   const infoBlocks = anggota ? [
-    { icon: BadgeCheck, label: 'No. Anggota',   val: anggota.no_anggota,        col: 'text-ink-800 font-mono' },
-    { icon: User,       label: 'Nama Lengkap',  val: anggota.nama_lengkap,      col: 'text-ink-800' },
-    { icon: Phone,      label: 'No. HP',        val: anggota.no_telepon ?? '—', col: 'text-ink-700' },
-    { icon: Mail,       label: 'Email',         val: anggota.email ?? '—',      col: 'text-ink-700' },
-    { icon: MapPin,     label: 'Alamat',        val: [profil?.alamat, profil?.kota, profil?.provinsi].filter(Boolean).join(', ') || '—', col: 'text-ink-700' },
-    { icon: Calendar,  label: 'Tgl. Bergabung', val: anggota.tanggal_bergabung, col: 'text-ink-700' },
+    { icon: BadgeCheck, label: 'No. Anggota', val: anggota.no_anggota, col: 'text-ink-800 font-mono' },
+    { icon: User, label: 'Nama Lengkap', val: anggota.nama_lengkap, col: 'text-ink-800' },
+    { icon: Phone, label: 'No. HP', val: anggota.no_telepon ?? '—', col: 'text-ink-700' },
+    { icon: Mail, label: 'Email', val: anggota.email ?? '—', col: 'text-ink-700' },
+    { icon: MapPin, label: 'Alamat', val: [profil?.alamat, profil?.kota, profil?.provinsi].filter(Boolean).join(', ') || '—', col: 'text-ink-700' },
+    { icon: Calendar, label: 'Tgl. Bergabung', val: anggota.tanggal_bergabung, col: 'text-ink-700' },
   ] : []
 
   const profilBlocks = anggota ? [
-    { icon: BadgeCheck, label: 'NIK',          val: profil?.nik ?? '—' },
-    { icon: Calendar,   label: 'Tgl. Lahir',   val: profil?.tanggal_lahir ? `${profil.tempat_lahir ?? ''}, ${profil.tanggal_lahir}` : '—' },
-    { icon: User,       label: 'Jenis Kelamin',val: profil?.jenis_kelamin === 'L' ? 'Laki-laki' : profil?.jenis_kelamin === 'P' ? 'Perempuan' : '—' },
-    { icon: Briefcase,  label: 'Pekerjaan',    val: profil?.pekerjaan ?? '—' },
+    { icon: BadgeCheck, label: 'NIK', val: profil?.nik ?? '—' },
+    { icon: Calendar, label: 'Tgl. Lahir', val: profil?.tanggal_lahir ? `${profil.tempat_lahir ?? ''}, ${profil.tanggal_lahir}` : '—' },
+    { icon: User, label: 'Jenis Kelamin', val: profil?.jenis_kelamin === 'L' ? 'Laki-laki' : profil?.jenis_kelamin === 'P' ? 'Perempuan' : '—' },
+    { icon: Briefcase, label: 'Pekerjaan', val: profil?.pekerjaan ?? '—' },
   ] : []
 
   return (
@@ -762,9 +762,8 @@ export default function ProfilAnggotaPage() {
                     { key: 'pinjaman' as const, label: 'Riwayat Pinjaman', Icon: CreditCard },
                   ].map(tab => (
                     <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-all ${
-                        activeTab === tab.key ? 'border-ink-800 text-ink-800' : 'border-transparent text-ink-400 hover:text-ink-600'
-                      }`}>
+                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-all ${activeTab === tab.key ? 'border-ink-800 text-ink-800' : 'border-transparent text-ink-400 hover:text-ink-600'
+                        }`}>
                       <tab.Icon className="w-3.5 h-3.5" />
                       {tab.label}
                     </button>

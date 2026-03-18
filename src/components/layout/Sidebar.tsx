@@ -114,77 +114,85 @@ export default function Sidebar() {
     <>
       <aside
         className={cn(
-          'relative flex flex-col h-screen bg-white border-r border-surface-300',
-          'transition-all duration-300 ease-in-out shrink-0',
-          collapsed ? 'w-16' : 'w-60'
+          'relative flex flex-col h-screen bg-white/95 backdrop-blur-md border-r border-slate-200/60',
+          'transition-all duration-300 ease-in-out shrink-0 z-40 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]',
+          collapsed ? 'w-20' : 'w-64'
         )}
       >
         {/* ── Logo ── */}
         <div
           className={cn(
-            'flex items-center gap-2.5 h-14 px-4 border-b border-surface-200 shrink-0',
+            'flex items-center gap-3 h-20 px-6 shrink-0',
             collapsed && 'justify-center px-0'
           )}
         >
-          <Image src="/logo.svg" alt={setting?.nama_koperasi || 'Logo'} width={32} height={32} className="shrink-0 object-contain" priority />
+          <div className="w-10 h-10 flex items-center justify-center shrink-0">
+             <Image src="/logo.svg" alt={setting?.nama_koperasi || 'Logo'} width={32} height={32} className="object-contain" priority />
+          </div>
           {!collapsed && (
-            <div className="animate-fade-in overflow-hidden">
-              <p className="text-sm font-bold text-ink-800 leading-none tracking-widest">
-                {setting?.nama_koperasi || 'KOPERASI'}
+            <div className="animate-slide-in overflow-hidden">
+              <p className="text-xs font-semibold text-ink-800 leading-none">
+                {setting?.nama_koperasi || 'Kopdar'}
               </p>
-              <p className="text-[9px] text-ink-300 mt-0.5 tracking-wider uppercase">Simpan Pinjam</p>
+              <p className="text-[10px] text-slate-400 font-medium tracking-wider uppercase mt-0.5">Simpan Pinjam</p>
             </div>
           )}
         </div>
 
         {/* ── Navigation ── */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2">
+        <nav className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
           {grouped.map(({ section, label, items }) => (
-            <div key={section} className="mb-1">
+            <div key={section} className="mb-6">
               {label && !collapsed && (
-                <p className="text-[10px] font-semibold tracking-widest uppercase text-ink-300 px-3 pt-3 pb-1.5">
+                <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-slate-400 px-4 mb-3">
                   {label}
                 </p>
               )}
-              {label && collapsed && <div className="my-2 mx-3 h-px bg-surface-200" />}
-              {items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed ? item.label : undefined}
-                  className={cn('sidebar-link', isActive(item.href) && 'active', collapsed && 'justify-center px-0')}
-                >
-                  <item.icon className={cn('icon shrink-0', isActive(item.href) ? 'text-white' : 'text-ink-400')} />
-                  {!collapsed && <span className="animate-fade-in truncate">{item.label}</span>}
-                </Link>
-              ))}
+              {label && collapsed && <div className="my-4 mx-4 h-px bg-slate-100" />}
+              <div className="space-y-1">
+                {items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={cn(
+                      'sidebar-link group', 
+                      isActive(item.href) && 'active', 
+                      collapsed && 'justify-center px-0 h-12 w-12 mx-auto'
+                    )}
+                  >
+                    <item.icon className={cn(
+                      'icon transition-transform duration-200 group-hover:scale-110', 
+                      isActive(item.href) ? 'text-white' : 'text-slate-400 group-hover:text-[#2A7FC5]'
+                    )} />
+                    {!collapsed && <span className="font-medium">{item.label}</span>}
+                    {isActive(item.href) && !collapsed && (
+                      <div className="absolute left-0 w-1 h-6 bg-white rounded-r-full my-auto" />
+                    )}
+                  </Link>
+                ))}
+              </div>
             </div>
           ))}
         </nav>
 
-        {/* ── User Info + Logout ── */}
-        <div className="shrink-0 border-t border-surface-200">
-
-          <div className="px-2 py-3">
-            <button
-              onClick={() => setConfirmLogout(true)}
-              disabled={loggingOut}
-              title={collapsed ? 'Logout' : undefined}
-              className={cn(
-                'sidebar-link w-full text-red-500 hover:bg-red-50 hover:text-red-600',
-                collapsed && 'justify-center px-0',
-                loggingOut && 'opacity-60 cursor-not-allowed'
-              )}
-            >
-              {loggingOut
-                ? <Loader2 className="icon shrink-0 text-red-400 animate-spin" />
-                : <LogOut className="icon shrink-0 text-red-400" />
-              }
-              {!collapsed && (
-                <span className="animate-fade-in">{loggingOut ? 'Keluar...' : 'Logout'}</span>
-              )}
-            </button>
-          </div>
+        {/* ── Logout ── */}
+        <div className="px-4 py-6 border-t border-slate-100">
+          <button
+            onClick={() => setConfirmLogout(true)}
+            disabled={loggingOut}
+            className={cn(
+              'sidebar-link w-full text-rose-500 hover:bg-rose-50 hover:text-rose-600 border border-transparent hover:border-rose-100',
+              collapsed && 'justify-center px-0 h-12 w-12 mx-auto',
+              loggingOut && 'opacity-60 cursor-not-allowed'
+            )}
+          >
+            {loggingOut
+              ? <Loader2 className="icon animate-spin" />
+              : <LogOut className="icon" />
+            }
+            {!collapsed && <span className="font-semibold">{loggingOut ? 'Keluar...' : 'Logout'}</span>}
+          </button>
         </div>
 
         {/* ── Collapse Toggle ── */}
@@ -212,7 +220,7 @@ export default function Sidebar() {
                 <LogOut className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-ink-800">Konfirmasi Logout</h3>
+                <span className="text-xs font-semibold text-slate-700">Logout</span>
                 <p className="text-xs text-ink-400 mt-0.5">Anda akan keluar dari sistem</p>
               </div>
             </div>

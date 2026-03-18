@@ -205,14 +205,14 @@ export default function Header() {
 
   return (
     <>
-      <header className="h-14 bg-white border-b border-surface-200 flex items-center justify-between px-5 shrink-0 relative z-30">
+      <header className="sticky top-0 z-30 h-16 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 md:px-8 shrink-0">
 
         {/* ── LEFT: Page Title ── */}
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-sm font-bold text-ink-800 leading-none">{pageInfo.title}</h1>
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:block">
+            <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-none">{pageInfo.title}</h1>
             {pageInfo.description && (
-              <p className="text-[11px] text-ink-300 mt-0.5">{pageInfo.description}</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 uppercase tracking-wider">{pageInfo.description}</p>
             )}
           </div>
         </div>
@@ -352,7 +352,9 @@ export default function Header() {
                 <User className="w-4 h-4 text-white" />
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-xs font-semibold text-ink-800 leading-none">{user?.username ?? '—'}</p>
+                <p className="text-xs font-semibold text-ink-800 leading-none capitalize">
+                  {user?.username.split('@')[0]}
+                </p>
                 <p className="text-[10px] text-ink-300 mt-0.5 capitalize">
                   {user ? ROLE_LABELS[user.role] ?? user.role : '—'}
                 </p>

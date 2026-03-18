@@ -46,6 +46,7 @@ interface Simpanan {
   nama_anggota?: string
   id_jenis_simpanan: number
   nama_jenis_simpanan?: string
+  kode_jenis_simpanan?: string
   no_transaksi: string
   tanggal_transaksi: string
   tipe_transaksi: 'setor' | 'tarik'
@@ -774,10 +775,11 @@ export default function SimpananPage() {
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-surface-300 shadow-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px]">
           <thead>
             <tr className="border-b border-surface-200 bg-surface-50">
-              {['NO. TRANSAKSI','ANGGOTA','JENIS','TIPE','NOMINAL','SALDO AKHIR','TANGGAL','AKSI'].map(h => (
+              {['NO. TRX','ANGGOTA','KODE','TIPE','NOMINAL','SALDO','TANGGAL','AKSI'].map(h => (
                 <th key={h} className="text-left text-[10px] font-bold text-ink-300 tracking-widest uppercase px-4 py-3 whitespace-nowrap">{h}</th>
               ))}
             </tr>
@@ -786,24 +788,19 @@ export default function SimpananPage() {
             {loading ? (
               Array(LIMIT).fill(0).map((_, i) => (
                 <tr key={i} className="border-b border-surface-100">
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <Skeleton className="w-8 h-8 rounded-lg" />
-                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="w-6 h-6 rounded-lg" />
+                      <Skeleton className="h-4 w-24" />
                     </div>
                   </td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-10" /></td>
                   <td className="px-4 py-3"><Skeleton className="h-6 w-16 rounded-full" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
                   <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <Skeleton className="w-7 h-7 rounded-lg" />
-                      <Skeleton className="w-7 h-7 rounded-lg" />
-                    </div>
-                  </td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-7 w-16 rounded-lg" /></td>
                 </tr>
               ))
             ) : data.length === 0 ? (
@@ -814,14 +811,20 @@ export default function SimpananPage() {
             ) : data.map((s, idx) => (
               <tr key={s.id_simpanan}
                 className={cn('border-b border-surface-100 hover:bg-surface-50 transition-colors', idx === data.length - 1 && 'border-b-0')}>
-                <td className="px-4 py-3 text-xs font-mono text-ink-400 whitespace-nowrap">{s.no_transaksi}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2.5">
+                <td className="px-4 py-3 text-[10px] font-mono text-ink-400 whitespace-nowrap" title={s.no_transaksi}>
+                  {s.no_transaksi.split('-').slice(1).join('-')}
+                </td>
+                <td className="px-4 py-3 max-w-[150px]">
+                  <div className="flex items-center gap-2">
                     <Avatar size="sm" />
-                    <span className="font-semibold text-ink-800 whitespace-nowrap">{s.nama_anggota ?? '—'}</span>
+                    <span className="font-semibold text-ink-800 truncate" title={s.nama_anggota}>{s.nama_anggota ?? '—'}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-ink-600 whitespace-nowrap">{s.nama_jenis_simpanan ?? '—'}</td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-surface-100 text-ink-600 border border-surface-200 uppercase tracking-wider" title={s.nama_jenis_simpanan}>
+                    {s.kode_jenis_simpanan ?? s.nama_jenis_simpanan?.slice(0, 3) ?? '—'}
+                  </span>
+                </td>
                 <td className="px-4 py-3">
                   <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
                     s.tipe_transaksi === 'setor' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500')}>
@@ -857,7 +860,8 @@ export default function SimpananPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}

@@ -16,6 +16,7 @@ import {
 import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/axios'
+import { cn } from '@/lib/utils'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface PaginatedMeta {
@@ -112,21 +113,40 @@ function StatCard({
   return (
     <div
       onClick={() => href && router.push(href)}
-      className={`stat-card transition-all ${href ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''}`}
+      className={cn(
+        "stat-card group cursor-pointer hover-lift hover-glow",
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/10 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
+        href && "hover:shadow-xl hover:-translate-y-1",
+        !href && "cursor-default"
+      )}
     >
-      <div className="flex items-start justify-between">
-        <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-          <Icon className={color} style={{ width: 18, height: 18 }} />
+      <div className="flex items-start justify-between relative z-10">
+        <div className={cn(
+          "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-transform duration-500 group-hover:rotate-12",
+          bg
+        )}>
+          <Icon className={cn("w-6 h-6", color)} />
         </div>
-        {href && <ChevronRight className="w-4 h-4 text-ink-300" />}
+        {href && (
+          <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+            <ChevronRight className="w-4 h-4 text-slate-400" />
+          </div>
+        )}
       </div>
-      <div>
-        <p className="text-[11px] text-ink-300 font-medium uppercase tracking-wide">{label}</p>
-        {loading
-          ? <Skeleton className="h-6 w-24 mt-1" />
-          : <p className="text-xl font-semibold text-ink-800 mt-0.5">{value}</p>
-        }
-        {sub && !loading && <p className="text-[11px] text-ink-300 mt-0.5">{sub}</p>}
+      <div className="relative z-10">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">{label}</p>
+        <div className="flex items-baseline gap-2 mt-1">
+          {loading ? (
+            <Skeleton className="h-8 w-24" />
+          ) : (
+            <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
+          )}
+        </div>
+        {sub && !loading && (
+          <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
+            {sub}
+          </p>
+        )}
       </div>
     </div>
   )
@@ -140,16 +160,21 @@ function AlertRow({ icon: Icon, color, label, count, loading, href, router }: {
   return (
     <button
       onClick={() => router.push(href)}
-      className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl bg-surface-100 hover:bg-surface-200 transition-colors"
+      className="group w-full flex items-center justify-between p-3 rounded-2xl bg-white/50 border border-slate-100/50 hover:bg-white hover:border-indigo-100 hover:shadow-md hover-lift hover-glow transition-all duration-300"
     >
-      <div className="flex items-center gap-2.5">
-        <Icon className={`w-4 h-4 ${color}`} />
-        <p className="text-xs text-ink-600 text-left">{label}</p>
+      <div className="flex items-center gap-3">
+        <div className={cn("p-2 rounded-xl transition-colors duration-300", "bg-slate-50 group-hover:bg-indigo-50")}>
+          <Icon className={cn("w-4 h-4", color)} />
+        </div>
+        <p className="text-[13px] font-medium text-slate-600 group-hover:text-slate-900 text-left transition-colors">{label}</p>
       </div>
-      {loading
-        ? <Skeleton className="w-6 h-4 shadow-sm" />
-        : <span className="text-xs font-bold text-ink-800 bg-white rounded-lg px-2 py-0.5 shadow-sm">{count}</span>
-      }
+      {loading ? (
+        <Skeleton className="w-8 h-5 rounded-lg" />
+      ) : (
+        <span className="text-[11px] font-bold text-slate-900 bg-white border border-slate-100 rounded-lg px-2.5 py-1 shadow-sm group-hover:border-indigo-200 group-hover:shadow-indigo-100/50 transition-all">
+          {count}
+        </span>
+      )}
     </button>
   )
 }
@@ -265,7 +290,7 @@ export default function DashboardPage() {
       label: 'Total Anggota',
       value: stats.totalAnggota.toLocaleString('id-ID'),
       sub: `${stats.anggotaAktif} aktif · ${stats.anggotaBaru} baru bulan ini`,
-      icon: Users, color: 'text-blue-600', bg: 'bg-blue-50',
+      icon: Users, color: 'text-[#2A7FC5]', bg: 'bg-blue-50',
       href: '/dashboard/anggota',
     },
     {
@@ -296,14 +321,14 @@ export default function DashboardPage() {
   const alertItems = stats ? [
     { icon: Clock,        color: 'text-amber-500',   label: 'Pinjaman menunggu persetujuan', count: stats.pinjamanPending,    href: '/dashboard/pinjaman' },
     { icon: AlertCircle,  color: 'text-red-500',     label: 'Angsuran terlambat',            count: stats.angsuranTerlambat,  href: '/dashboard/angsuran' },
-    { icon: UserCheck,    color: 'text-blue-500',    label: 'Angsuran belum bayar',          count: stats.angsuranJatuhTempo, href: '/dashboard/angsuran' },
+    { icon: UserCheck,    color: 'text-blue-600',    label: 'Angsuran belum bayar',          count: stats.angsuranJatuhTempo, href: '/dashboard/angsuran' },
     { icon: CheckCircle2, color: 'text-emerald-500', label: 'Anggota baru bulan ini',        count: stats.anggotaBaru,        href: '/dashboard/anggota'  },
   ] : []
 
   const STATUS_PINJAMAN: Record<string, { label: string; cls: string }> = {
     menunggu:  { label: 'Menunggu',  cls: 'bg-amber-50 text-amber-700'    },
     pending:   { label: 'Menunggu',  cls: 'bg-amber-50 text-amber-700'    },
-    disetujui: { label: 'Disetujui', cls: 'bg-blue-50 text-blue-700'      },
+    disetujui: { label: 'Disetujui', cls: 'bg-blue-50 text-[#1A2F4A]'      },
     ditolak:   { label: 'Ditolak',   cls: 'bg-red-50 text-red-600'        },
     lunas:     { label: 'Lunas',     cls: 'bg-emerald-50 text-emerald-700' },
   }
@@ -317,32 +342,37 @@ export default function DashboardPage() {
 
   // Config warna & label series
   const series = [
-    { key: 'setor',    name: 'Setor',    color: '#10b981' },
-    { key: 'tarik',    name: 'Tarik',    color: '#f87171' },
-    { key: 'angsuran', name: 'Angsuran', color: '#6366f1' },
+    { key: 'setor',    name: 'Setor',    color: '#2A7FC5' }, // Blue dari button
+    { key: 'tarik',    name: 'Tarik',    color: '#f87171' }, // Red (tetap)
+    { key: 'angsuran', name: 'Angsuran', color: '#1A2F4A' }, // Navy dari button
   ]
 
   return (
     <div className="space-y-5 animate-fade-in">
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-base font-semibold text-ink-800">
-            Selamat datang, {user?.username} 👋
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Selamat datang, <span className="text-[#2A7FC5]">
+              {user?.role 
+                ? user.role.charAt(0).toUpperCase() + user.role.slice(1) 
+                : user?.username.split('@')[0]}
+            </span> 👋
           </h1>
-          <p className="text-xs text-ink-300 mt-0.5">
+          <p className="text-sm text-slate-500 font-medium mt-1">
             {lastUpdated
-              ? `Terakhir diperbarui: ${lastUpdated.toLocaleTimeString('id-ID')}`
-              : 'Memuat data...'}
+              ? `Terakhir diperbarui: ${lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+              : 'Sinkronisasi data...'}
           </p>
         </div>
         <button
           onClick={loadAll} disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-ink-600 border border-surface-300 hover:bg-surface-100 transition-colors disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2.5 px-6 h-12 rounded-2xl text-sm font-bold text-white shadow-lg shadow-blue-900/20 hover:shadow-blue-900/30 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, #1A2F4A 0%, #2A7FC5 100%)' }}
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+          Refresh Data
         </button>
       </div>
 
@@ -359,54 +389,52 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))
-          : statCards.map(s => (
-              <StatCard key={s.label} {...s} loading={false} router={router} />
+          : statCards.map((s, i) => (
+              <div key={s.label} className={cn("animate-slide-up", `stagger-${i+1}`)}>
+                <StatCard {...s} loading={false} router={router} />
+              </div>
             ))
         }
       </div>
 
       {/* ── Grafik Ringkasan Keuangan ── */}
-      <div className="card">
+      <div className="card animate-scale-in stagger-3">
         {/* Header grafik */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-ink-800">Ringkasan Keuangan</h2>
-            <p className="text-[11px] text-ink-300 mt-0.5">Simpanan & angsuran 6 bulan terakhir</p>
+            <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Ringkasan Keuangan</h2>
+            <p className="text-xs text-slate-500 font-medium mt-1 uppercase tracking-wider">Simpanan & angsuran 6 bulan terakhir</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-6">
             {/* Legend */}
-            <div className="hidden sm:flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {series.map(s => (
-                <div key={s.key} className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-sm" style={{ background: s.color }} />
-                  <span className="text-[11px] text-ink-500 font-medium">{s.name}</span>
+                <div key={s.key} className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ background: s.color }} />
+                  <span className="text-[11px] text-slate-600 font-semibold uppercase tracking-tight">{s.name}</span>
                 </div>
               ))}
             </div>
 
             {/* Toggle Bar / Line */}
-            <div className="flex items-center bg-surface-100 rounded-lg p-0.5 gap-0.5">
+            <div className="inline-flex bg-slate-100/80 p-1 rounded-xl shadow-inner border border-slate-200/50">
               <button
                 onClick={() => setChartMode('bar')}
-                title="Bar Chart"
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
-                  chartMode === 'bar'
-                    ? 'bg-white text-ink-800 shadow-sm'
-                    : 'text-ink-400 hover:text-ink-600'
-                }`}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all",
+                  chartMode === 'bar' ? "bg-white text-[#1A2F4A] shadow-md" : "text-slate-500 hover:text-slate-700"
+                )}
               >
                 <BarChart2 className="w-3.5 h-3.5" />
                 Bar
               </button>
               <button
                 onClick={() => setChartMode('line')}
-                title="Line Chart"
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
-                  chartMode === 'line'
-                    ? 'bg-white text-ink-800 shadow-sm'
-                    : 'text-ink-400 hover:text-ink-600'
-                }`}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all",
+                  chartMode === 'line' ? "bg-white text-indigo-600 shadow-md" : "text-slate-500 hover:text-slate-700"
+                )}
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 Line
@@ -473,36 +501,59 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-4">
 
           {/* Transaksi Simpanan Terbaru */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-ink-800">Transaksi Simpanan Terbaru</h2>
+          <div className="card animate-fade-in stagger-4">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Aktivitas Simpanan</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5 tracking-wide uppercase">Transaksi 5 Terakhir</p>
+              </div>
               <button onClick={() => router.push('/dashboard/simpanan')}
-                className="text-[11px] text-accent-600 hover:underline flex items-center gap-1 font-medium">
-                Lihat semua <ArrowUpRight className="w-3 h-3" />
+                className="group flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition-all shadow-md"
+                style={{ background: 'linear-gradient(135deg, #1A2F4A 0%, #2A7FC5 100%)' }}>
+                Lihat Semua
+                <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </button>
             </div>
             {loading ? (
-              <div className="space-y-2">
-                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}
+              <div className="space-y-3">
+                {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}
               </div>
             ) : recentSimpanan.length === 0 ? (
-              <p className="text-xs text-ink-300 text-center py-6">Belum ada transaksi simpanan</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center mb-4">
+                  <PiggyBank className="w-8 h-8 text-slate-200" />
+                </div>
+                <p className="text-sm font-semibold text-slate-400">Belum Ada Transaksi</p>
+              </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-3">
                 {recentSimpanan.map(t => (
-                  <div key={t.id_simpanan} className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-surface-50 transition-colors">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${t.tipe_transaksi === 'setor' ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                  <div key={t.id_simpanan} className="group flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all">
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
+                      t.tipe_transaksi === 'setor' ? 'bg-emerald-50' : 'bg-rose-50'
+                    )}>
                       {t.tipe_transaksi === 'setor'
-                        ? <ArrowDownCircle className="w-4 h-4 text-emerald-600" />
-                        : <ArrowUpCircle  className="w-4 h-4 text-red-500" />}
+                        ? <ArrowDownCircle className="w-6 h-6 text-emerald-600" />
+                        : <ArrowUpCircle  className="w-6 h-6 text-rose-500" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-ink-800 truncate">{t.nama_anggota ?? '—'}</p>
-                      <p className="text-[10px] text-ink-300">{t.nama_jenis_simpanan ?? '—'} · {t.tanggal_transaksi}</p>
+                      <p className="text-sm font-semibold text-slate-900 truncate">{t.nama_anggota ?? '—'}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{t.nama_jenis_simpanan ?? '—'}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-200" />
+                        <span className="text-[10px] font-medium text-slate-500 italic">{t.tanggal_transaksi}</span>
+                      </div>
                     </div>
-                    <p className={`text-xs font-bold shrink-0 ${t.tipe_transaksi === 'setor' ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {t.tipe_transaksi === 'tarik' ? '−' : '+'}{fmtCompact(t.nominal)}
-                    </p>
+                    <div className="text-right">
+                      <p className={cn(
+                        "text-[15px] font-bold tracking-tight",
+                        t.tipe_transaksi === 'setor' ? 'text-emerald-600' : 'text-rose-500'
+                      )}>
+                        {t.tipe_transaksi === 'tarik' ? '−' : '+'}{fmtCompact(t.nominal)}
+                      </p>
+                      <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-widest mt-0.5">Berhasil</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -510,43 +561,58 @@ export default function DashboardPage() {
           </div>
 
           {/* Pinjaman Terbaru */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-ink-800">Pinjaman Terbaru</h2>
+          <div className="card animate-fade-in stagger-4">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Daftar Pinjaman</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5 tracking-wide uppercase">Pengajuan Terbaru</p>
+              </div>
               <button onClick={() => router.push('/dashboard/pinjaman')}
-                className="text-[11px] text-accent-600 hover:underline flex items-center gap-1 font-medium">
-                Lihat semua <ArrowUpRight className="w-3 h-3" />
+                className="group flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition-all shadow-md"
+                style={{ background: 'linear-gradient(135deg, #1A2F4A 0%, #2A7FC5 100%)' }}>
+                Kelola Pinjaman
+                <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </button>
             </div>
             {loading ? (
-              <div className="space-y-2">
-                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}
+              <div className="space-y-3">
+                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)}
               </div>
             ) : recentPinjaman.length === 0 ? (
-              <p className="text-xs text-ink-300 text-center py-6">Belum ada pinjaman</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center mb-4">
+                  <CreditCard className="w-8 h-8 text-slate-200" />
+                </div>
+                <p className="text-sm font-semibold text-slate-400">Belum Ada Pengajuan</p>
+              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto -mx-6 px-6">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-surface-100">
-                      {['No. Pinjaman', 'Anggota', 'Nominal', 'Sisa', 'Status'].map(h => (
-                        <th key={h} className="text-left text-[10px] font-semibold text-ink-300 uppercase tracking-wider py-2 pr-4 whitespace-nowrap">{h}</th>
+                    <tr>
+                      {['No. Pinjaman', 'Anggota', 'Nominal', 'Status'].map(h => (
+                        <th key={h} className="text-left text-[10px] font-semibold text-slate-400 uppercase tracking-[0.2em] py-4 pr-4 border-b border-slate-100">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-surface-100">
+                  <tbody className="divide-y divide-slate-50 text-[13px]">
                     {recentPinjaman.map(p => {
                       const sc = STATUS_PINJAMAN[p.status] ?? STATUS_PINJAMAN.menunggu
                       return (
-                        <tr key={p.id_pinjaman} className="hover:bg-surface-50 transition-colors">
-                          <td className="py-2.5 pr-4 font-mono text-[10px] text-ink-400 whitespace-nowrap">{p.no_pinjaman}</td>
-                          <td className="py-2.5 pr-4 text-ink-700 font-medium whitespace-nowrap">{p.nama_anggota ?? '—'}</td>
-                          <td className="py-2.5 pr-4 font-semibold text-ink-800 whitespace-nowrap">{fmtCompact(p.nominal_pinjaman)}</td>
-                          <td className={`py-2.5 pr-4 font-bold whitespace-nowrap ${p.sisa_pinjaman > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                            {fmtCompact(p.sisa_pinjaman)}
+                        <tr key={p.id_pinjaman} className="group hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 pr-4 font-mono text-[11px] text-slate-400 group-hover:text-slate-600 transition-colors">{p.no_pinjaman}</td>
+                          <td className="py-4 pr-4 font-semibold text-slate-700 whitespace-nowrap">{p.nama_anggota ?? '—'}</td>
+                          <td className="py-4 pr-4">
+                             <p className="font-bold text-slate-900 truncate">{fmtCompact(p.nominal_pinjaman)}</p>
+                             <p className="text-[10px] font-semibold text-rose-500 mt-0.5">Sisa: {fmtCompact(p.sisa_pinjaman)}</p>
                           </td>
-                          <td className="py-2.5">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${sc.cls}`}>{sc.label}</span>
+                          <td className="py-4">
+                            <span className={cn(
+                              "px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-sm inline-block",
+                              sc.cls.replace('bg-', 'bg-').replace('text-', 'text-')
+                            )}>
+                              {sc.label}
+                            </span>
                           </td>
                         </tr>
                       )
@@ -562,11 +628,11 @@ export default function DashboardPage() {
         <div className="space-y-4">
 
           {/* Perlu Perhatian */}
-          <div className="card">
-            <h2 className="text-sm font-semibold text-ink-800 mb-3">Perlu Perhatian</h2>
-            <div className="space-y-2">
+          <div className="card h-fit animate-fade-in stagger-2">
+            <h2 className="text-lg font-semibold text-slate-900 tracking-tight mb-6">Perlu Perhatian</h2>
+            <div className="space-y-3">
               {loading
-                ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)
+                ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)
                 : alertItems.map(item => (
                     <AlertRow key={item.label} {...item} loading={false} router={router} />
                   ))
@@ -575,35 +641,41 @@ export default function DashboardPage() {
           </div>
 
           {/* Angsuran Belum Bayar */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-ink-800">Angsuran Belum Bayar</h2>
+          <div className="card h-fit animate-fade-in stagger-3">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Tagihan Pending</h2>
               <button onClick={() => router.push('/dashboard/angsuran')}
-                className="text-[11px] text-accent-600 hover:underline flex items-center gap-1 font-medium">
-                Semua <ArrowUpRight className="w-3 h-3" />
+                className="group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition-all">
+                Semua
+                <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </button>
             </div>
             {loading ? (
-              <div className="space-y-2">
-                {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
+              <div className="space-y-4">
+                {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
               </div>
             ) : jatuhTempo.length === 0 ? (
-              <div className="flex flex-col items-center py-6 text-center">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400 mb-1.5" />
-                <p className="text-xs text-ink-400">Semua angsuran up to date</p>
+              <div className="flex flex-col items-center py-10 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
+                   <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                </div>
+                <p className="text-sm font-bold text-slate-400 italic">Semua angsuran lancar ✨</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {jatuhTempo.map(a => (
-                  <div key={a.id_angsuran} className="p-3 rounded-xl bg-surface-50 border border-surface-200">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-semibold text-ink-800 truncate">{a.nama_anggota ?? '—'}</p>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${STATUS_ANGSURAN[a.status]?.cls ?? 'bg-surface-200 text-ink-400'}`}>
+                  <div key={a.id_angsuran} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100/80 hover:bg-white hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{a.nama_anggota ?? '—'}</p>
+                      <span className={cn(
+                        "text-[9px] font-bold px-2 py-1 rounded-lg uppercase tracking-widest",
+                        STATUS_ANGSURAN[a.status]?.cls ?? 'bg-slate-200 text-slate-400'
+                      )}>
                         {STATUS_ANGSURAN[a.status]?.label ?? a.status}
                       </span>
                     </div>
-                    <p className="text-[10px] text-ink-300">{a.no_pinjaman} · Ke-{a.angsuran_ke}</p>
-                    <p className="text-xs font-bold text-red-500 mt-1">{fmtCompact(a.nominal_angsuran)}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest leading-none">{a.no_pinjaman} · Ke-{a.angsuran_ke}</p>
+                    <p className="text-[17px] font-bold text-rose-500 mt-2">{fmtCompact(a.nominal_angsuran)}</p>
                   </div>
                 ))}
               </div>

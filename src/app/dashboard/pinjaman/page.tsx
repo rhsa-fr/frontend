@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   User, RefreshCw, Plus, Loader2, AlertCircle,
   ChevronLeft, ChevronRight, Clock, CheckCircle2, XCircle,
-  CreditCard, CheckCheck
+  CreditCard, CheckCheck, Search
 } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { cn } from '@/lib/utils'
@@ -60,6 +60,8 @@ export default function PinjamanPage() {
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [counts, setCounts] = useState({ semua: 0, pending: 0, disetujui: 0, ditolak: 0, lunas: 0 })
 
   // Modal states
@@ -82,6 +84,7 @@ export default function PinjamanPage() {
         skip: String((page - 1) * LIMIT),
         limit: String(LIMIT),
         ...(statusFilter ? { status: statusFilter } : {}),
+        ...(debouncedSearch ? { search: debouncedSearch } : {}),
       })
       const res = await api.get<PaginatedResponse>(`/pinjaman?${params}`)
       setData(res.data)
@@ -108,7 +111,14 @@ export default function PinjamanPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter])
+  }, [page, statusFilter, debouncedSearch])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [search])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -180,20 +190,33 @@ export default function PinjamanPage() {
         ))}
       </div>
 
-      {/* ── Filter Pills ── */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {FILTER_PILLS.map(pill => (
-          <button key={pill.value}
-            onClick={() => { setStatusFilter(pill.value); setPage(1) }}
-            className={cn(
-              'h-8 px-3.5 rounded-full text-xs font-semibold transition-all border',
-              statusFilter === pill.value
-                ? 'bg-ink-800 text-white border-ink-800'
-                : 'bg-white border-surface-300 text-ink-600 hover:border-ink-300 hover:bg-surface-50'
-            )}>
-            {pill.label}
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {FILTER_PILLS.map(pill => (
+            <button key={pill.value}
+              onClick={() => { setStatusFilter(pill.value); setPage(1) }}
+              className={cn(
+                'h-8 px-3.5 rounded-full text-xs font-semibold transition-all border',
+                statusFilter === pill.value
+                  ? 'bg-ink-800 text-white border-ink-800'
+                  : 'bg-white border-surface-300 text-ink-600 hover:border-ink-300 hover:bg-surface-50'
+              )}>
+              {pill.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search Input */}
+        <div className="relative min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-300" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Cari nama anggota atau no. pinjaman..."
+            className="w-full h-9 pl-9 pr-4 rounded-xl border border-surface-300 text-xs text-ink-800 outline-none focus:ring-2 focus:ring-[#2a7fc5]/20 focus:border-[#2a7fc5] bg-white transition-all placeholder:text-ink-200"
+          />
+        </div>
       </div>
 
       {/* ── Hint untuk ketua ── */}
